@@ -8,8 +8,21 @@
 <meta name="description" content="NxNx Tech builds custom software, mobile apps and web apps for businesses — creators of the Ghana Trotro Transit app.">
 <link rel="stylesheet" href="../css/styles.css">
 <link rel="icon" href="../images/simple-logo.png" type="image/png">
+<style>
+  body.home-page {
+    padding-bottom: 320px;
+  }
+  body.home-page .footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 50;
+  }
+</style>
 </head>
-<body data-page-name="Home">
+<body class="home-page" data-page-name="Home">
 
     <div data-component="header"></div>
 
@@ -17,8 +30,6 @@
     <p style="text-align:center; margin-top:20px;">If you are not redirected automatically, <a style="color: var(--marigold-2); text-decoration: underline;" href="pages/index.html">click here</a>.</p>
 
     <div data-component="business-card"></div>
-
-    <div style="height: 300px;"></div> <!-- Spacer to ensure footer is visible -->
 
 <footer data-component="footer"></footer>
 
@@ -28,7 +39,7 @@
 <script src="../js/components.js"></script>
 <script src="../js/main.js"></script>
 <script>
-  //window.location.href = "pages/index.html";
+  window.location.href = "pages/index.html";
 </script>
 </body>
 </html>
