@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghana Trotro Transit — Case Study — NxNx Tech</title>
+<meta name="description" content="How NxNx Tech built Ghana Trotro Transit, a real-time route-mapping app for Ghana's trotro network.">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="icon" href="images/logo1.png" type="image/png"></head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a href="index.html" class="brand"><img src="images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
+    <nav class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="our-work.html" class="active">Our Work</a>
+      <a href="services.html">Services</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="contact.html" class="btn btn-outline btn-sm">Start a project</a>
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- PROJECT HEADER -->
+<section style="padding-top:70px; padding-bottom:40px;">
+  <div class="wrap">
+    <a href="our-work.html" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--ink-soft);">← Back to Our Work</a>
+    <div style="margin-top:22px; display:flex; justify-content:space-between; align-items:flex-end; gap:30px; flex-wrap:wrap;">
+      <div>
+        <span class="route-tag">Case Study</span>
+        <h1 style="margin-top:18px;">Ghana Trotro Transit</h1>
+        <p class="lede" style="margin-top:16px;">Revolutionising public transit navigation, one route at a time.</p>
+      </div>
+      <div style="display:flex; gap:34px; font-family:var(--font-mono); font-size:0.85rem;">
+        <div><div style="opacity:0.6; margin-bottom:4px;">Client</div><div style="font-weight:700;">Ghana Trotro Transit</div></div>
+        <div><div style="opacity:0.6; margin-bottom:4px;">Services</div><div style="font-weight:700;">Mobile App, Backend, Design, Web, Admin</div></div>
+        <div><div style="opacity:0.6; margin-bottom:4px;">Year</div><div style="font-weight:700;">2025</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><div class="road-rule"></div></div>
+
+<!-- BODY: CHALLENGE / SOLUTION -->
+<section class="reveal">
+  <div class="wrap" style="display:grid; grid-template-columns:1fr 1fr; gap:60px;">
+    <div>
+      <span class="pill">The Challenge</span>
+      <h3 style="margin-top:16px;">Ghana's trotro network has no official map.</h3>
+      <p style="margin-top:14px; color:var(--ink-soft);">Trotros move millions of commuters every day, but routes, stations and fares live entirely in the shared knowledge of drivers, mates and regular riders. For newcomers, and even for daily commuters heading somewhere unfamiliar, there was no reliable way to plan a trip in advance.</p>
+    </div>
+    <div>
+      <span class="pill">The Solution</span>
+      <h3 style="margin-top:16px;">Real-time mapping, built with the people who ride.</h3>
+      <p style="margin-top:14px; color:var(--ink-soft);">We built a mobile app that plots trotro routes across the country, surfaces live fare and station data, and puts trip planning in a simple, uncluttered interface — designed to be usable on entry-level Android devices and patchy mobile data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DEVICE MOCKUP GALLERY -->
+<section class="reveal">
+  <div class="wrap">
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:30px; align-items:end;">
+      <!-- phone 1: search -->
+       <img src="images/app-image-2.png" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+      <!-- phone 2: map -->
+      <img src="images/app-image-3.png" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+      <!-- phone 3: fare/station detail -->
+      <img src="images/app-image.jpeg" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+    </div>
+  </div>
+</section>
+
+<!-- FEATURE: ROUTE SEARCH -->
+<section class="reveal">
+  <div class="wrap">
+    <div style="background:var(--paper-2); border:2px solid var(--ink); border-radius:14px; padding:56px; display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center;">
+      <div>
+        <span class="route-tag green">Core feature</span>
+        <h2 style="margin-top:18px;">Route search that thinks like a local.</h2>
+        <p style="margin-top:16px; color:var(--ink-soft); max-width:44ch;">Enter any two points in Accra — or beyond — and the app surfaces the fastest and most affordable trotro combinations, including transfers, in seconds.</p>
+      </div>
+      <svg viewBox="0 0 360 220">
+        <rect width="360" height="220" rx="10" fill="var(--white)" stroke="var(--ink)" stroke-width="2"/>
+        <circle cx="40" cy="60" r="7" fill="var(--route-red)"/>
+        <circle cx="320" cy="160" r="7" fill="var(--palm)"/>
+        <path d="M40 60 Q160 20 200 100 T320 160" stroke="var(--sign-blue)" stroke-width="3" fill="none" stroke-dasharray="7 6"/>
+        <text x="40" y="42" font-family="Space Mono" font-size="11" fill="var(--ink)">A · Circle</text>
+        <text x="240" y="188" font-family="Space Mono" font-size="11" fill="var(--ink)">B · Tema Station</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES LIST -->
+<section class="reveal">
+  <div class="wrap">
+    <div class="section-head"><span class="route-tag">More on board</span></div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:26px;">
+      <div class="board-card">
+        <span class="num">01</span>
+        <h3 style="margin-top:14px;">Offline Access</h3>
+        <p>Saved routes stay available with no signal, essential for stations with weak coverage.</p>
+      </div>
+      <div class="board-card">
+        <span class="num">02</span>
+        <h3 style="margin-top:14px;">Crowdsourced Updates</h3>
+        <p>Riders flag fare or route changes in real time, keeping the network accurate without a central office.</p>
+      </div>
+      <div class="board-card">
+        <span class="num">03</span>
+        <h3 style="margin-top:14px;">Favorites &amp; History</h3>
+        <p>One tap to re-plan a regular commute, with past trips saved automatically.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section class="reveal">
+  <div class="wrap" style="max-width:720px;">
+    <span class="route-tag blue">From a daily commuter</span>
+    <p style="font-family:var(--font-display); font-size:1.9rem; line-height:1.2; margin-top:20px;">"I used to leave the house forty minutes early just in case I got lost changing trotros. Now I check the app, and I know exactly which station to jump off at."</p>
+    <p style="margin-top:16px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— Yaw Boateng, daily commuter, Madina to Osu</p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="reveal">
+  <div class="wrap">
+    <div style="background:var(--ink); border-radius:14px; padding:64px 56px; text-align:center;">
+      <h2 style="color:var(--paper);">Ride along, or build your own.</h2>
+      <p style="color:#C9C2AE; margin-top:14px; max-width:50ch; margin-left:auto; margin-right:auto;">Download Ghana Trotro Transit, or talk to us about a custom project of your own.</p>
+      <div style="display:flex; gap:16px; justify-content:center; margin-top:32px; flex-wrap:wrap;">
+        <a href="https://ghana-trotro-transit.netlify.app#download" target="_blank" rel="noopener" class="btn btn-primary">Download the app</a>
+        <a href="contact.html" class="btn btn-outline" style="border-color:var(--paper); color:var(--paper);">Discuss a similar project</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="brand"><img src="images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
+        <p>Custom software, mobile apps and web apps — designed and built in Ghana.</p>
+      </div>
+      <div>
+        <h4>Site</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="our-work.html">Our Work</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:nxnxtech@gmail.com">nxnxtech@gmail.com</a></li>
+          <li><a href="https://wa.me/233209156811" target="_blank" rel="noopener">+233 20 915 6811 (WhatsApp)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Based in</h4>
+        <ul><li><span style="color:#D8D2C0;">Accra, Ghana</span></li></ul>
+        <ul><li><span style="color:#D8D2C0;">Ablorh Adjei</span></li></ul>
+        <ul><li><span style="color:#D8D2C0;">GE-065-1075</span></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> NxNx Tech. All rights reserved.</span>
+      <a href="#">Ghana Trotro Transit</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
