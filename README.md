@@ -1,2 +1,2 @@
 ## Title
-First proper website for NXNX Tech. # main-web
+First proper website for NXNX Tech. #main-web

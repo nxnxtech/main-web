@@ -5,16 +5,16 @@ window.NxNxComponents.footer = `
   <div class="wrap">
     <div class="footer-grid">
       <div class="footer-brand">
-        <a href="index.html" class="brand"><img src="../images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
+        <a href="../pages/index.html" class="brand"><img src="../images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
         <p>Custom software, mobile apps and web apps — designed and built in Ghana.</p>
       </div>
       <div>
         <h4>Site</h4>
         <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="our-work.html">Our Work</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
+          <li><a href="../pages/index.html">Home</a></li>
+          <li><a href="../pages/our-work.html">Our Work</a></li>
+          <li><a href="../pages/services.html">Services</a></li>
+          <li><a href="../pages/contact.html">Contact</a></li>
         </ul>
       </div>
       <div>
@@ -38,7 +38,7 @@ window.NxNxComponents.footer = `
       <span>© <span data-year></span> NxNx Tech. All rights reserved.</span>
       <div class="footer-page-name">
         <img src="../images/simple-logo-nobg.png" alt="NxNx Tech" style="width:20px; height:20px; margin-right:4px; vertical-align:middle;">
-        
+
         <a href="#" style="color:#D8D2C0;">
         <span data-footer-page-name>Home</span></a>
       </div>
