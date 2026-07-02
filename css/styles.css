@@ -249,6 +249,22 @@ p{ margin:0; }
   .nav-cta .btn-outline{ display:none; }
 }
 
+@media (max-width: 900px) {
+  .board-card.reveal {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 24px;
+  }
+  .board-card.reveal .app-image-area {
+    order: 2;
+    width: 100%;
+    min-height: 260px;
+  }
+  .board-card.reveal > div:first-child {
+    order: 1;
+  }
+}
+
 /* ---------------- footer ---------------- */
 .footer{
   background: var(--ink);

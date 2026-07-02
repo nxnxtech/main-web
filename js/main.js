@@ -118,7 +118,7 @@ function initSiteBehaviors() {
               : '';
             
             cardHTML = `
-              <a href="${project.link}" class="board-card reveal" style="grid-column:1 / -1; display:inline-grid; grid-template-columns:1.1fr 1fr; gap:0; padding:0; overflow:hidden; text-decoration:none; color:inherit; width:100%;" ${linkAttr}>
+              <a href="${project.link}" class="board-card reveal" style="grid-column:1 / -1; display:inline-grid; grid-template-columns:1.1fr 1fr; gap:0; padding:0; text-decoration:none; color:inherit; width:100%;" ${linkAttr}>
                 <div style="padding:40px;">
                   <span class="pill" style="background:var(--marigold); border-color:var(--ink);">${project.type}</span>
                   <h3 style="margin-top:18px; font-size:2.2rem;">${project.title}</h3>
