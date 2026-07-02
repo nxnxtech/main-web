@@ -38,41 +38,52 @@
 
 <!-- CONTACT FORM + DETAILS -->
 <section class="reveal">
-  <div class="wrap" style="display:grid; grid-template-columns:1.2fr 1fr; gap:60px;">
+  <div class="wrap" style="display:grid; grid-template-columns:1.2fr; gap:60px;">
 
-    <form data-demo-form style="display:flex; flex-direction:column; gap:18px;">
+    <form data-demo-form data-email-to="nxnxtech@gmail.com" style="display:flex; flex-direction:column; gap:18px;">
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
         <div>
           <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Name</label>
-          <input type="text" required style="width:100%; margin-top:6px; padding:13px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white);">
+          <input type="text" name="name" required style="width:100%; margin-top:6px; padding:13px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white);">
         </div>
         <div>
           <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Email</label>
-          <input type="email" required style="width:100%; margin-top:6px; padding:13px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white);">
+          <input type="email" name="email" required style="width:100%; margin-top:6px; padding:13px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white);">
         </div>
       </div>
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Project type</label>
-        <select style="width:100%; margin-top:6px; padding:13px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white);">
-          <option>Website</option>
-          <option>Mobile App</option>
-          <option>Software</option>
-          <option>Other</option>
+        <select id="project-type" name="project_type" style="width:100%; margin-top:6px; padding:13px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white);">
+          <option value="">Select a project type</option>
+          <option value="Custom Software">Custom Software</option>
+          <option value="Mobile App">Mobile App</option>
+          <option value="Web App">Web App</option>
+          <option value="Other">Other</option>
         </select>
       </div>
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Message</label>
-        <textarea rows="6" required style="width:100%; margin-top:6px; padding:13px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); resize:vertical;"></textarea>
+        <textarea name="message" rows="6" required style="width:100%; margin-top:6px; padding:13px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); resize:vertical;"></textarea>
       </div>
       <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send message</button>
       <p data-form-status class="status-msg" style="font-family:var(--font-mono); font-size:0.82rem; color:var(--palm-dark); opacity:0; transition:opacity .3s;"></p>
     </form>
+  </div>
+</section>
 
+<section class="reveal">
+  <div class="wrap" style="display:grid; grid-template-columns:1.2fr; gap:60px;">
     <div style="display:flex; flex-direction:column; gap:34px;">
       <div class="board-card">
         <span class="num">Direct</span>
         <h3 style="margin-top:14px; font-size:1.3rem;">Reach us directly</h3>
         <div style="margin-top:16px; display:flex; flex-direction:column; gap:14px;">
+          <a href="tel:+233209156811" style="display:flex; align-items:center; gap:12px; font-family:var(--font-mono); font-size:0.92rem;">
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor">
+            <path d="M20.01 15.38c-1.23 0-2.42-.19-3.53-.56a.98.98 0 0 0-1.01.24l-1.57 1.97A13.9 13.9 0 0 1 7.21 11.1l1.97-1.57a.97.97 0 0 0 .24-1.01 10.96 11.96 0 0 0-.56-3.53A.98.98 0 0 0 7.37 3H4.85a.98.98 0 0 0-1 1.15c.19 1.34.45 2.62.77 3.84a18.3 18.3 0 0 0 3.33 6.94 18.3 18.3 0 0 0 6.94 3.33c1.22.32 2.5.58 3.84.77A.98.98 0 0 0 21 20.01v-2.52a.98.98 0 0 0-.99-2.11z"/>
+            </svg>
+            +233&nbsp;20&nbsp;915&nbsp;6811
+          </a>
           <a href="mailto:nxnxtech@gmail.com" style="display:flex; align-items:center; gap:12px; font-family:var(--font-mono); font-size:0.92rem;">
             <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="2" fill="none" stroke="var(--ink)" stroke-width="1.6"/><path d="M2 5 L10 11 L18 5" fill="none" stroke="var(--ink)" stroke-width="1.6"/></svg>
             nxnxtech@gmail.com
@@ -96,13 +107,7 @@
         <h3 style="margin-top:14px; font-size:1.3rem;">Where we're based</h3>
         <p style="margin-top:10px;">Accra, Ghana — working with clients across the country and beyond.</p>
         <div style="margin-top:16px; border:2px solid var(--ink); border-radius:6px; overflow:hidden;">
-          <svg viewBox="0 0 300 140" style="display:block;">
-            <rect width="300" height="140" fill="var(--paper-2)"/>
-            <path d="M0 90 Q80 60 150 85 T300 70" stroke="var(--ink)" stroke-width="1" opacity="0.25" fill="none"/>
-            <path d="M0 110 Q90 130 160 105 T300 115" stroke="var(--ink)" stroke-width="1" opacity="0.25" fill="none"/>
-            <circle cx="150" cy="70" r="7" fill="var(--route-red)"/>
-            <text x="150" y="52" text-anchor="middle" font-family="Space Mono" font-size="11" fill="var(--ink)">ACCRA, GH</text>
-          </svg>
+          <iframe class="contact-map" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d400.7724381622532!2d-0.20617539699776186!3d5.7091120138015095!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2sgh!4v1782975277409!5m2!1sen!2sgh" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
         </div>
       </div>
     </div>
@@ -128,6 +133,7 @@
       <div>
         <h4>Contact</h4>
         <ul>
+          <li><a href="tel:+233209156811">+233 20 915 6811</a></li>
           <li><a href="mailto:nxnxtech@gmail.com">nxnxtech@gmail.com</a></li>
           <li><a href="https://wa.me/233209156811" target="_blank" rel="noopener">+233 20 915 6811 (WhatsApp)</a></li>
         </ul>
@@ -140,8 +146,8 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 NxNx Tech. All rights reserved.</span>
-      <span>Built with HTML, CSS &amp; JS.</span>
+      <span>© <span data-year></span> NxNx Tech. All rights reserved.</span>
+      <a href="#">Contact</a>
     </div>
   </div>
 </footer>

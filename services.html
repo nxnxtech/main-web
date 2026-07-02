@@ -66,7 +66,7 @@
           <li>→ Cross-platform builds</li>
           <li>→ Offline-first design</li>
           <li>→ Push notifications</li>
-          <li>→ App store launch support</li>
+          <li>→ App / Google Play store launch support</li>
         </ul>
       </div>
       <a href="contact.html" class="btn btn-outline btn-sm">Discuss this →</a>
@@ -137,7 +137,7 @@
         <span class="route-tag" style="background:var(--marigold); color:var(--ink);">On schedule</span>
         <h2 style="color:var(--paper); margin-top:14px;">How fast we get you there</h2>
       </div>
-      <p class="lede" style="color:#B9BBAE;">Base builds, not full custom scopes — timelines start once discovery is signed off and stretch with added complexity.</p>
+      <p class="lede" style="color:#B9BBAE;">Base builds, not full custom scopes, timelines start once discovery is signed off and stretch with added complexity.</p>
     </div>
     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:26px;">
       <div class="board-card" style="background:var(--paper);">
@@ -150,7 +150,7 @@
         <span class="num" style="background:var(--marigold); color:var(--ink);">RT-02</span>
         <div style="font-family:var(--font-display); font-size:3.2rem; line-height:1; margin-top:6px;">2 weeks</div>
         <h3 style="margin-top:10px;">Base Mobile Apps</h3>
-        <p>A base mobile app — core screens and functionality — delivered in under two weeks.</p>
+        <p>A base mobile app - core screens and functionality, delivered in under two weeks.</p>
       </div>
       <div class="board-card" style="background:var(--paper);">
         <span class="num" style="background:var(--marigold); color:var(--ink);">RT-03</span>
@@ -166,27 +166,28 @@
 <section class="reveal">
   <div class="wrap" style="max-width:640px;">
     <div class="section-head" style="margin-bottom:30px;"><span class="route-tag green">Get started</span><h2>Tell us about your project</h2></div>
-    <form data-demo-form style="display:flex; flex-direction:column; gap:18px;">
+    <form data-demo-form data-email-to="nxnxtech@gmail.com" style="display:flex; flex-direction:column; gap:18px;">
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Name</label>
-        <input type="text" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
+        <input type="text" name="name" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
       </div>
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Email</label>
-        <input type="email" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
+        <input type="email" name="email" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
       </div>
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Project type</label>
-        <select style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
-          <option>Custom Software</option>
-          <option>Mobile App</option>
-          <option>Web App</option>
-          <option>Other</option>
+        <select id="project-type" name="project_type" style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
+          <option value="">Select a project type</option>
+          <option value="Custom Software">Custom Software</option>
+          <option value="Mobile App">Mobile App</option>
+          <option value="Web App">Web App</option>
+          <option value="Other">Other</option>
         </select>
       </div>
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Message</label>
-        <textarea rows="4" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body); resize:vertical;"></textarea>
+        <textarea name="message" rows="4" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body); resize:vertical;"></textarea>
       </div>
       <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send message</button>
       <p data-form-status style="font-family:var(--font-mono); font-size:0.82rem; color:var(--palm-dark); opacity:0; transition:opacity .3s;" class="status-msg"></p>
@@ -214,6 +215,7 @@
       <div>
         <h4>Contact</h4>
         <ul>
+          <li><a href="tel:+233209156811">+233 20 915 6811</a></li>
           <li><a href="mailto:nxnxtech@gmail.com">nxnxtech@gmail.com</a></li>
           <li><a href="https://wa.me/233209156811" target="_blank" rel="noopener">+233 20 915 6811 (WhatsApp)</a></li>
         </ul>
@@ -226,8 +228,8 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 NxNx Tech. All rights reserved.</span>
-      <span>Built with HTML, CSS &amp; JS.</span>
+      <span>© <span data-year></span> NxNx Tech. All rights reserved.</span>
+      <a href="#">Services</a>
     </div>
   </div>
 </footer>

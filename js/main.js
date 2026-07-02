@@ -50,22 +50,71 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* contact / cta forms — front-end only demo handling */
   document.querySelectorAll('form[data-demo-form]').forEach(form => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      const to = form.dataset.emailTo || 'nxnxtech@gmail.com';
+      const get = (field) => {
+        const el = form.querySelector(`[name="${field}"]`);
+        return el ? el.value.trim() : '';
+      };
+
+      const name = get('name');
+      const email = get('email');
+      const projectType = get('project_type');
+      const message = get('message');
+
       const status = form.querySelector('[data-form-status]');
+      const inputBox = form.querySelector('#project-type', '#name', '#email', '#message');
       const btn = form.querySelector('button[type="submit"]');
-      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-      setTimeout(() => {
+      if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
+
+      if (projectType || email || name || message == "") {
+
         if (status) {
-          status.textContent = "Message received — we'll reply within one business day.";
+          inputBox.classList.add('error');
+          status.textContent = 'Please select a project type before sending.';
           status.classList.add('is-visible');
         }
-        if (btn) { btn.disabled = false; btn.dataset.originalText && (btn.textContent = btn.dataset.originalText); }
+        return;
+      }
+
+      if (!name || !email || !message) {
+        if (status) {
+          status.textContent = 'Please fill in your name, email and message before sending.';
+          status.classList.add('is-visible');
+        }
+        return;
+      }
+
+      const subject = `New project inquiry from ${name}${projectType ? ' — ' + projectType : ''}`;
+      const bodyLines = [
+        `Name: ${name}`,
+        `Email: ${email}`,
+        projectType ? `Project type: ${projectType}` : null,
+        '',
+        'Message:',
+        message
+      ].filter(Boolean);
+      const body = bodyLines.join('\n');
+
+      const mailtoUrl = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      btn.disabled = true;
+      btn.textContent = 'Opening email…';
+
+      window.location.href = mailtoUrl;
+
+      setTimeout(() => {
+        if (status) {
+          status.textContent = `Your email app should now be open with this message addressed to ${to} — just hit send.`;
+          status.classList.add('is-visible');
+        }
+        btn.disabled = false;
+        btn.textContent = btn.dataset.originalText;
         form.reset();
-      }, 700);
-      if (btn && !btn.dataset.originalText) btn.dataset.originalText = 'Send message';
+      }, 500);
     });
   });
 

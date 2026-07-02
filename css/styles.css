@@ -222,6 +222,12 @@ p{ margin:0; }
   }
 }
 
+.error{
+  color: red;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
 @media (max-width: 880px){
   .nav-toggle{ display:flex; }
   .nav-links{
