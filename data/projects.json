@@ -1,0 +1,48 @@
+[
+  {
+    "id": "ghana-trotro-transit",
+    "title": "Ghana Trotro Transit",
+    "type": "Mobile App",
+    "isMainFeatured": true,
+    "description": "Real-time route mapping for the country's largest informal transit network.",
+    "client": "Ghana Trotro Transit",
+    "link": "project.html",
+    "linkText": "View case study →",
+    "images": ["../images/app-image-2.png", "../images/app-image.jpeg"],
+    "ctaText": "Download the app"
+  },
+  {
+    "id": "outback-hotel",
+    "num": "RT-05",
+    "title": "The Outback Hotel",
+    "type": "Web Platform",
+    "description": "A hotel web app with integrated booking and guest management features."
+  },
+  {
+    "id": "jobs-co",
+    "num": "RT-06",
+    "title": "Jobs.co",
+    "type": "Mobile App",
+    "description": "A job search platform connecting job seekers with people with tasks to complete but cannot do that in Ghana.",
+    "link": "https://jobs-co.netlify.app",
+    "isExternal": true,
+    "linkText": "View →"
+  },
+  {
+    "id": "danny-dreams",
+    "num": "RT-07",
+    "title": "Danny Dreams",
+    "type": "Web Platform",
+    "description": "A web platform for a Ghanaian who deal in a lot services such as real estate and tourism and more."
+  },
+  {
+    "id": "ghana-trotro-web",
+    "num": "RT-08",
+    "title": "Ghana Trotro Transit - Web",
+    "type": "Web Platform",
+    "description": "The web version of Ghana Trotro Transit, easy to use.",
+    "link": "https://aardmann.github.io/ghana-trotro-transit-web",
+    "isExternal": true,
+    "linkText": "View →"
+  }
+]

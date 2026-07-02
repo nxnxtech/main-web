@@ -5,25 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ghana Trotro Transit — Case Study — NxNx Tech</title>
 <meta name="description" content="How NxNx Tech built Ghana Trotro Transit, a real-time route-mapping app for Ghana's trotro network.">
-<link rel="stylesheet" href="css/styles.css">
-<link rel="icon" href="images/logo1.png" type="image/png"></head>
-<body>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="icon" href="../images/simple-logo.png" type="image/png">
+</head>
+<body data-page-name="Ghana Trotro Transit">
 
-<header class="nav">
-  <div class="wrap">
-    <a href="index.html" class="brand"><img src="images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
-    <nav class="nav-links" id="navLinks">
-      <a href="index.html">Home</a>
-      <a href="our-work.html" class="active">Our Work</a>
-      <a href="services.html">Services</a>
-      <a href="contact.html">Contact</a>
-    </nav>
-    <div class="nav-cta">
-      <a href="contact.html" class="btn btn-outline btn-sm">Start a project</a>
-      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
-    </div>
-  </div>
-</header>
+<div data-component="header"></div>
 
 <!-- PROJECT HEADER -->
 <section style="padding-top:70px; padding-bottom:40px;">
@@ -67,11 +54,11 @@
   <div class="wrap">
     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:30px; align-items:end;">
       <!-- phone 1: search -->
-       <img src="images/app-image-2.png" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+       <img src="../images/app-image-2.png" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
       <!-- phone 2: map -->
-      <img src="images/app-image-3.png" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+      <img src="../images/app-image-3.png" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
       <!-- phone 3: fare/station detail -->
-      <img src="images/app-image.jpeg" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+      <img src="../images/app-image.jpeg" alt="" style="width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
     </div>
   </div>
 </section>
@@ -144,44 +131,14 @@
   </div>
 </section>
 
-<footer class="footer">
-  <div class="wrap">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="index.html" class="brand"><img src="images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
-        <p>Custom software, mobile apps and web apps — designed and built in Ghana.</p>
-      </div>
-      <div>
-        <h4>Site</h4>
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="our-work.html">Our Work</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <ul>
-          <li><a href="tel:+233209156811">+233 20 915 6811</a></li>
-          <li><a href="mailto:nxnxtech@gmail.com">nxnxtech@gmail.com</a></li>
-          <li><a href="https://wa.me/233209156811" target="_blank" rel="noopener">+233 20 915 6811 (WhatsApp)</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Based in</h4>
-        <ul><li><span style="color:#D8D2C0;">Accra, Ghana</span></li></ul>
-        <ul><li><span style="color:#D8D2C0;">Ablorh Adjei</span></li></ul>
-        <ul><li><span style="color:#D8D2C0;">GE-065-1075</span></li></ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© <span data-year></span> NxNx Tech. All rights reserved.</span>
-      <a href="#">Ghana Trotro Transit</a>
-    </div>
-  </div>
-</footer>
+<div data-component="business-card"></div>
 
-<script src="js/main.js"></script>
+<div data-component="footer"></div>
+
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../components/business-card.js"></script>
+<script src="../js/components.js"></script>
+<script src="../js/main.js"></script>
 </body>
 </html>

@@ -5,27 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NxNx Tech</title>
 <meta name="description" content="NxNx Tech builds custom software, mobile apps and web apps for businesses — creators of the Ghana Trotro Transit app.">
-<link rel="stylesheet" href="css/styles.css">
-<link rel="icon" href="images/logo1.png" type="image/png">
-</head>
-<body>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="icon" href="../images/simple-logo.png" type="image/png">
 
-<!-- ===================== NAV ===================== -->
-<header class="nav">
-  <div class="wrap">
-    <a href="index.html" class="brand"><img src="images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
-    <nav class="nav-links" id="navLinks">
-      <a href="index.html" class="active">Home</a>
-      <a href="our-work.html">Our Work</a>
-      <a href="services.html">Services</a>
-      <a href="contact.html">Contact</a>
-    </nav>
-    <div class="nav-cta">
-      <a href="contact.html" class="btn btn-outline btn-sm">Start a project</a>
-      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
-    </div>
-  </div>
-</header>
+</head>
+<body data-page-name="Home">
+
+<div data-component="header"></div>
 
 <!-- ===================== HERO ===================== -->
 <section style="padding-top:76px; padding-bottom: 70px;">
@@ -76,22 +62,23 @@
           </g>
 
           <rect x="30" y="270" width="126" height="26" rx="13" fill="var(--marigold)"/>
-          <text x="93" y="287" text-anchor="middle" font-family="Space Mono" font-size="10.5" font-weight="700" fill="var(--ink)">BUILD PASSING</text>
+          <text x="93" y="287" text-anchor="middle" font-family="Space Mono" font-size="10.5" font-weight="700" fill="var(--ink)">DEPLOYING...</text>
           <rect x="168" y="270" width="90" height="26" rx="13" fill="none" stroke="var(--paper)" stroke-width="1.4" opacity="0.5"/>
-          <text x="213" y="287" text-anchor="middle" font-family="Space Mono" font-size="10.5" fill="var(--paper)" opacity="0.75">v2.4.0</text>
+          <!-- date for version-->
+          <text data-date x="213" y="287" text-anchor="middle" font-family="Space Mono" font-size="10.5" fill="var(--paper)" opacity="0.75"></text>
 
           <!-- floating phone mockup overlapping the editor -->
           <g transform="translate(268,150)">
             <rect x="0" y="0" width="168" height="288" rx="22" fill="var(--paper)" stroke="var(--ink)" stroke-width="3"/>
             <rect x="14" y="18" width="140" height="210" rx="4" fill="var(--paper-2)"/>
-            <rect x="14" y="18" width="140" height="34" fill="var(--marigold)"/>
-            <text x="26" y="40" font-family="Bebas Neue" font-size="16" fill="var(--ink)">Your App</text>
+            <rect x="14" y="18" width="140" height="34" rx="5" fill="var(--marigold)"/>
+            <text x="26" y="40" font-family="Bebas Neue" font-size="16" fill="var(--ink)">NXNX TECH - YOUR APP</text>
             <rect x="26" y="66" width="116" height="12" rx="6" fill="var(--ink)" opacity="0.14"/>
             <rect x="26" y="86" width="90" height="12" rx="6" fill="var(--ink)" opacity="0.14"/>
             <rect x="26" y="112" width="116" height="46" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1.2"/>
             <rect x="26" y="168" width="116" height="46" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1.2"/>
-            <rect x="26" y="246" width="116" height="28" rx="14" fill="var(--ink)"/>
-            <text x="84" y="264" text-anchor="middle" font-family="Space Mono" font-size="10" fill="var(--marigold)"><a href="contact.html">GET STARTED</a></text>
+            <a href="contact.html"><rect x="26" y="246" width="116" height="28" rx="14" fill="var(--ink)"/>
+            <text x="84" y="264" text-anchor="middle" font-family="Space Mono" font-size="10" fill="var(--marigold)">GET STARTED</text></a>
           </g>
         </svg>
       </div>
@@ -126,9 +113,9 @@
         <h2 style="color:var(--paper); margin-top:18px;">Ghana Trotro Transit</h2>
         <p style="color:#C9C2AE; margin-top:18px; max-width:46ch; font-size:1.05rem;">The app that finally puts every trotro route in the country in your pocket, real-time mapping, fares and stations for a transit network that was never on any official map.</p>
         <a href="our-work.html" class="btn btn-primary" style="margin-top:30px;">See the full case study →</a>
-      <img src="images/app-icon-cover.png" alt="flagship-app-icon-cover" class="app-icon-cover">
+      <img src="../images/app-icon-cover.png" alt="flagship-app-icon-cover" class="app-icon-cover">
       </div>
-      <img src="images/app-image.jpeg" alt="flagship-app-image" class="app-image">
+      <img src="../images/app-image.jpeg" alt="flagship-app-image" class="app-image">
     </div>
   </div>
 </section>
@@ -239,34 +226,16 @@
         <svg width="18" height="18" viewBox="0 0 18 18"><path d="M11 3 L5 9 L11 15" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
 
-      <div style="flex:1; min-height:190px;">
-        <div data-slide class="is-active testimonial-slide">
-          <p style="font-family:var(--font-display); font-size:1.7rem; line-height:1.25;">"NxNx Tech turned an idea we'd sketched on a napkin into a working product in ten weeks. They understood our market from day one."</p>
-          <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— Mark Owusu, Manager, The Outback Hotel</p>
-        </div>
-        <div data-slide class="testimonial-slide">
-          <p style="font-family:var(--font-display); font-size:1.7rem; line-height:1.25;">"Post-launch support has been the real difference. Every bug we've flagged has been fixed within a day."</p>
-          <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— Sarfo, CEO, The Outback Hotel</p>
-        </div>
-        <div data-slide class="testimonial-slide">
-          <p style="font-family:var(--font-display); font-size:1.7rem; line-height:1.25;">"Professional from the first call to the final handover. Our dashboard just works, and our team actually likes using it."</p>
-          <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— Joseph Mensah, Boss, JL Surveying</p>
-        </div>
-        <div data-slide class="testimonial-slide">
-          <p style="font-family:var(--font-display); font-size:1.7rem; line-height:1.25;">"They shipped our MVP, then stuck around to scale it. Uptime hasn't dropped once since launch."</p>
-          <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— Daniel Amankwaa, CEO, Danny Dreams</p>
-        </div>
+      <div style="flex:1; min-height:190px;" data-testimonials-container>
+        <!-- Testimonials loaded from comments.json -->
       </div>
 
       <button data-next class="carousel-arrow" aria-label="Next testimonial">
         <svg width="18" height="18" viewBox="0 0 18 18"><path d="M7 3 L13 9 L7 15" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
-    <div style="display:flex; gap:10px; margin-top:26px; padding-left:52px;">
-      <button data-dot class="is-active carousel-dot" aria-label="Show testimonial 1"></button>
-      <button data-dot class="carousel-dot" aria-label="Show testimonial 2"></button>
-      <button data-dot class="carousel-dot" aria-label="Show testimonial 3"></button>
-      <button data-dot class="carousel-dot" aria-label="Show testimonial 4"></button>
+    <div style="display:flex; gap:10px; margin-top:26px; padding-left:52px;" data-dots-container>
+      <!-- Dots generated from comments.json -->
     </div>
   </div>
 </section>
@@ -303,47 +272,14 @@
   </div>
 </section>
 
-<!-- ===================== FOOTER ===================== -->
-<footer class="footer">
-  <div class="wrap">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <a href="index.html" class="brand"><img src="images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
-        <p>Custom software, mobile apps and web apps - designed and built in Ghana.</p>
-      </div>
-      <div>
-        <h4>Site</h4>
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="our-work.html">Our Work</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <ul>
-          <li><a href="tel:+233209156811">+233 20 915 6811</a></li>
-          <li><a href="mailto:nxnxtech@gmail.com">nxnxtech@gmail.com</a></li>
-          <li><a href="https://wa.me/233209156811" target="_blank" rel="noopener">+233 20 915 6811 (WhatsApp)</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Based in</h4>
-        <ul>
-          <li><span style="color:#D8D2C0;">Accra, Ghana</span></li>
-          <li><span style="color:#D8D2C0;">Ablorh Adjei</span></li>
-          <li><span style="color:#D8D2C0;">GE-065-1075</span></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© <span data-year></span> NxNx Tech. All rights reserved.</span>
-      <a href="#" style="color:#D8D2C0;"><span>Home</span></a>
-    </div>
-  </div>
-</footer>
+<div data-component="business-card"></div>
 
-<script src="js/main.js"></script>
+<div data-component="footer"></div>
+
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../components/business-card.js"></script>
+<script src="../js/components.js"></script>
+<script src="../js/main.js"></script>
 </body>
 </html>

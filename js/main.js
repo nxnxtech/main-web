@@ -1,6 +1,8 @@
 // TrotroTech Solutions — shared behaviour
 
-document.addEventListener('DOMContentLoaded', () => {
+function initSiteBehaviors() {
+  if (document.documentElement.dataset.siteBehaviorsInitialized === 'true') return;
+  document.documentElement.dataset.siteBehaviorsInitialized = 'true';
 
   /* mobile nav toggle */
   const toggle = document.querySelector('.nav-toggle');
@@ -14,40 +16,144 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* scroll reveal */
-  const revealEls = document.querySelectorAll('.reveal');
-  if ('IntersectionObserver' in window && revealEls.length) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15 });
-    revealEls.forEach(el => io.observe(el));
-  } else {
-    revealEls.forEach(el => el.classList.add('in'));
+  let revealIO;
+  function observeReveal(elements) {
+    const els = elements instanceof Element ? [elements] : Array.from(elements);
+    if (!els.length) return;
+
+    if ('IntersectionObserver' in window) {
+      if (!revealIO) {
+        revealIO = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in');
+              revealIO.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.15 });
+      }
+      els.forEach(el => revealIO.observe(el));
+    } else {
+      els.forEach(el => el.classList.add('in'));
+    }
   }
 
-  /* testimonial slider */
-  const slider = document.querySelector('[data-testimonial-slider]');
-  if (slider) {
-    const slides = slider.querySelectorAll('[data-slide]');
-    const dots = slider.querySelectorAll('[data-dot]');
-    let idx = 0;
-    const show = (i) => {
-      slides.forEach((s, n) => s.classList.toggle('is-active', n === i));
-      dots.forEach((d, n) => d.classList.toggle('is-active', n === i));
-      idx = i;
-    };
-    dots.forEach((d, n) => d.addEventListener('click', () => show(n)));
-    const next = slider.querySelector('[data-next]');
-    const prev = slider.querySelector('[data-prev]');
-    if (next) next.addEventListener('click', () => show((idx + 1) % slides.length));
-    if (prev) prev.addEventListener('click', () => show((idx - 1 + slides.length) % slides.length));
-    if (slides.length > 1) {
-      setInterval(() => show((idx + 1) % slides.length), 6500);
-    }
+  observeReveal(document.querySelectorAll('.reveal'));
+
+  /* load testimonials from comments.json and initialize slider */
+  const testimonialsContainer = document.querySelector('[data-testimonials-container]');
+  const dotsContainer = document.querySelector('[data-dots-container]');
+  if (testimonialsContainer && dotsContainer) {
+    fetch('../data/comments.json')
+      .then(response => response.json())
+      .then(comments => {
+        // Create slides
+        comments.forEach((comment, index) => {
+          const slide = document.createElement('div');
+          slide.setAttribute('data-slide', '');
+          slide.className = `testimonial-slide ${index === 0 ? 'is-active' : ''}`;
+          slide.innerHTML = `
+            <p style="font-family:var(--font-display); font-size:1.7rem; line-height:1.25;">"${comment.comment}"</p>
+            <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— ${comment.name}, ${comment.company}</p>
+          `;
+          testimonialsContainer.appendChild(slide);
+        });
+        
+        // Create dots
+        comments.forEach((_, index) => {
+          const dot = document.createElement('button');
+          dot.setAttribute('data-dot', '');
+          dot.className = `carousel-dot ${index === 0 ? 'is-active' : ''}`;
+          dot.setAttribute('aria-label', `Show testimonial ${index + 1}`);
+          dotsContainer.appendChild(dot);
+        });
+
+        // Initialize slider after slides are created
+        const slider = document.querySelector('[data-testimonial-slider]');
+        if (slider) {
+          const slides = slider.querySelectorAll('[data-slide]');
+          const dots = document.querySelectorAll('[data-dot]');
+          let idx = 0;
+          let autoplayInterval;
+          
+          const show = (i) => {
+            slides.forEach((s, n) => s.classList.toggle('is-active', n === i));
+            dots.forEach((d, n) => d.classList.toggle('is-active', n === i));
+            idx = i;
+          };
+          
+          dots.forEach((d, n) => d.addEventListener('click', () => show(n)));
+          
+          const next = slider.querySelector('[data-next]');
+          const prev = slider.querySelector('[data-prev]');
+          
+          if (next) next.addEventListener('click', () => show((idx + 1) % slides.length));
+          if (prev) prev.addEventListener('click', () => show((idx - 1 + slides.length) % slides.length));
+          
+          if (slides.length > 1) {
+            autoplayInterval = setInterval(() => show((idx + 1) % slides.length), 6500);
+          }
+        }
+      })
+      .catch(error => console.error('Error loading comments:', error));
+  }
+
+  /* load projects from projects.json */
+  const projectsGrid = document.getElementById('projects-grid');
+  if (projectsGrid) {
+    fetch('../data/projects.json')
+      .then(response => response.json())
+      .then(projects => {
+        projects.forEach((project) => {
+          let cardHTML;
+          
+          if (project.isMainFeatured) {
+            // Main featured card with images
+            const imagesHTML = project.images 
+              ? project.images.map((img, idx) => `<img src="${img}" alt="" class="app-image-${idx === 0 ? 'work' : 'work-2'}">`).join('')
+              : '';
+            
+            const linkAttr = project.isExternal 
+              ? `target="_blank" rel="noopener"`
+              : '';
+            
+            cardHTML = `
+              <a href="${project.link}" class="board-card reveal" style="grid-column:1 / -1; display:inline-grid; grid-template-columns:1.1fr 1fr; gap:0; padding:0; overflow:hidden; text-decoration:none; color:inherit; width:100%;" ${linkAttr}>
+                <div style="padding:40px;">
+                  <span class="pill" style="background:var(--marigold); border-color:var(--ink);">${project.type}</span>
+                  <h3 style="margin-top:18px; font-size:2.2rem;">${project.title}</h3>
+                  <p style="margin-top:12px; color:var(--ink-soft);">Client: ${project.client}. ${project.description}</p>
+                  <span class="btn btn-dark btn-sm" style="margin-top:22px;">${project.linkText}</span>
+                </div>
+                <div class="app-image-area">
+                  ${imagesHTML}
+                </div>
+              </a>
+            `;
+          } else {
+            // Regular board card
+            cardHTML = `
+              <div class="board-card">
+                <span class="num">${project.num}</span>
+                <span class="pill">${project.type}</span>
+                <h3 style="margin-top:14px;">${project.title}</h3>
+                <p>${project.description}</p>
+                ${project.link ? `<a href="${project.link}" target="_blank" rel="noopener"><span class="btn btn-dark btn-sm" style="margin-top:22px;">${project.linkText}</span></a>` : ''}
+              </div>
+            `;
+          }
+          
+          const cardElement = document.createElement('div');
+          cardElement.innerHTML = cardHTML;
+          const card = cardElement.firstElementChild;
+          projectsGrid.appendChild(card);
+
+          if (card.classList.contains('reveal')) {
+            observeReveal(card);
+          }
+        });
+      })
+      .catch(error => console.error('Error loading projects:', error));
   }
 
   document.querySelectorAll('form[data-demo-form]').forEach(form => {
@@ -127,4 +233,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const yearEl = document.querySelector('[data-year]');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+  /* date today for version */
+  const dateEl = document.querySelector('[data-date]');
+  if (dateEl) {
+    const today = new Date();
+    const formattedDate = `v${today.getFullYear()}.${today.getMonth() + 1}.${today.getDate()}`;
+    dateEl.textContent = formattedDate;
+  }
+
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.querySelector('[data-component="header"], [data-component="footer"]')) {
+    document.addEventListener('components:loaded', initSiteBehaviors, { once: true });
+  } else {
+    initSiteBehaviors();
+  }
 });
