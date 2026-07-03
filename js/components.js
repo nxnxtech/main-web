@@ -94,6 +94,7 @@
 
     replacePlaceholder('[data-component="footer"]', components.footer || '');
     replacePlaceholder('[data-component="business-card"]', components.businessCard || '');
+    replacePlaceholder('[data-component="review-modal"]', components.reviewModal || '');
     injectPageName();
     
     // Initialize business card after it's loaded

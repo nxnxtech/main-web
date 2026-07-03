@@ -40,120 +40,167 @@ function initSiteBehaviors() {
 
   observeReveal(document.querySelectorAll('.reveal'));
 
-  /* load testimonials from comments.json and initialize slider */
+  /* load testimonials from Supabase and initialize slider */
   const testimonialsContainer = document.querySelector('[data-testimonials-container]');
   const dotsContainer = document.querySelector('[data-dots-container]');
-  if (testimonialsContainer && dotsContainer) {
-    fetch('../data/comments.json')
-      .then(response => response.json())
-      .then(comments => {
-        // Create slides
-        comments.forEach((comment, index) => {
-          const slide = document.createElement('div');
-          slide.setAttribute('data-slide', '');
-          slide.className = `testimonial-slide ${index === 0 ? 'is-active' : ''}`;
-          slide.innerHTML = `
-            <p style="font-family:var(--font-display); font-size:1.7rem; line-height:1.25;">"${comment.comment}"</p>
-            <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— ${comment.name}, ${comment.company}</p>
-          `;
-          testimonialsContainer.appendChild(slide);
-        });
-        
-        // Create dots
-        comments.forEach((_, index) => {
-          const dot = document.createElement('button');
-          dot.setAttribute('data-dot', '');
-          dot.className = `carousel-dot ${index === 0 ? 'is-active' : ''}`;
-          dot.setAttribute('aria-label', `Show testimonial ${index + 1}`);
-          dotsContainer.appendChild(dot);
-        });
 
-        // Initialize slider after slides are created
-        const slider = document.querySelector('[data-testimonial-slider]');
-        if (slider) {
-          const slides = slider.querySelectorAll('[data-slide]');
-          const dots = document.querySelectorAll('[data-dot]');
-          let idx = 0;
-          let autoplayInterval;
-          
-          const show = (i) => {
-            slides.forEach((s, n) => s.classList.toggle('is-active', n === i));
-            dots.forEach((d, n) => d.classList.toggle('is-active', n === i));
-            idx = i;
-          };
-          
-          dots.forEach((d, n) => d.addEventListener('click', () => show(n)));
-          
-          const next = slider.querySelector('[data-next]');
-          const prev = slider.querySelector('[data-prev]');
-          
-          if (next) next.addEventListener('click', () => show((idx + 1) % slides.length));
-          if (prev) prev.addEventListener('click', () => show((idx - 1 + slides.length) % slides.length));
-          
-          if (slides.length > 1) {
-            autoplayInterval = setInterval(() => show((idx + 1) % slides.length), 6500);
-          }
-        }
-      })
-      .catch(error => console.error('Error loading comments:', error));
+  function renderTestimonials(comments) {
+    testimonialsContainer.innerHTML = '';
+
+    if (!comments.length) {
+      testimonialsContainer.innerHTML = `<p style="color:var(--ink-soft);">Be the first to leave a review.</p>`;
+      return;
+    }
+
+    comments.forEach((comment, index) => {
+      const slide = document.createElement('div');
+      slide.setAttribute('data-slide', '');
+      slide.className = `testimonial-slide ${index === 0 ? 'is-active' : ''}`;
+      slide.innerHTML = `
+        <p style="font-family:var(--font-display); font-size:1.7rem; line-height:1.25;">"${escapeHTML(comment.comment)}"</p>
+        <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— ${escapeHTML(comment.name)}${comment.company ? `, ${escapeHTML(comment.company)}` : ''}</p>
+      `;
+      testimonialsContainer.appendChild(slide);
+    });
+
+    // Create dots
+    comments.forEach((_, index) => {
+      const dot = document.createElement('button');
+      dot.setAttribute('data-dot', '');
+      dot.className = `carousel-dot ${index === 0 ? 'is-active' : ''}`;
+      dot.setAttribute('aria-label', `Show testimonial ${index + 1}`);
+      dotsContainer.appendChild(dot);
+    });
+
+    // Initialize slider after slides are created
+    const slider = document.querySelector('[data-testimonial-slider]');
+    if (slider) {
+      const slides = slider.querySelectorAll('[data-slide]');
+      const dots = document.querySelectorAll('[data-dot]');
+      let idx = 0;
+      let autoplayInterval;
+
+      const show = (i) => {
+        slides.forEach((s, n) => s.classList.toggle('is-active', n === i));
+        dots.forEach((d, n) => d.classList.toggle('is-active', n === i));
+        idx = i;
+      };
+
+      dots.forEach((d, n) => d.addEventListener('click', () => show(n)));
+
+      const next = slider.querySelector('[data-next]');
+      const prev = slider.querySelector('[data-prev]');
+
+      if (next) next.addEventListener('click', () => show((idx + 1) % slides.length));
+      if (prev) prev.addEventListener('click', () => show((idx - 1 + slides.length) % slides.length));
+
+      if (slides.length > 1) {
+        autoplayInterval = setInterval(() => show((idx + 1) % slides.length), 6500);
+      }
+    }
   }
 
-  /* load projects from projects.json */
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  if (testimonialsContainer && dotsContainer) {
+    if (!window.supabaseClient) {
+      console.error('Supabase client not found — check that supabase-config.js is loaded before main.js.');
+    } else {
+      if (window.NxNxComponents?.loadingState) {
+        testimonialsContainer.innerHTML = window.NxNxComponents.loadingState('Loading reviews…');
+      }
+      window.supabaseClient
+        .from('comments')
+        .select('name, comment, company, website')
+        .eq('approved', true)
+        .order('created_at', { ascending: false })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Error loading comments:', error);
+            testimonialsContainer.innerHTML = `<p style="color:var(--ink-soft);">Reviews couldn't be loaded right now.</p>`;
+            return;
+          }
+          renderTestimonials(data || []);
+        });
+    }
+  }
+
+  /* load projects from Supabase */
   const projectsGrid = document.getElementById('projects-grid');
   if (projectsGrid) {
-    fetch('../data/projects.json')
-      .then(response => response.json())
-      .then(projects => {
-        projects.forEach((project) => {
-          let cardHTML;
-          
-          if (project.isMainFeatured) {
-            // Main featured card with images
-            const imagesHTML = project.images 
-              ? project.images.map((img, idx) => `<img src="${img}" alt="" class="app-image-${idx === 0 ? 'work' : 'work-2'}">`).join('')
-              : '';
-            
-            const linkAttr = project.isExternal 
-              ? `target="_blank" rel="noopener"`
-              : '';
-            
-            cardHTML = `
-              <a href="${project.link}" class="board-card reveal" style="grid-column:1 / -1; display:inline-grid; grid-template-columns:1.1fr 1fr; gap:0; padding:0; text-decoration:none; color:inherit; width:100%;" ${linkAttr}>
-                <div style="padding:40px;">
-                  <span class="pill" style="background:var(--marigold); border-color:var(--ink);">${project.type}</span>
-                  <h3 style="margin-top:18px; font-size:2.2rem;">${project.title}</h3>
-                  <p style="margin-top:12px; color:var(--ink-soft);">Client: ${project.client}. ${project.description}</p>
-                  <span class="btn btn-dark btn-sm" style="margin-top:22px;">${project.linkText}</span>
-                </div>
-                <div class="app-image-area">
-                  ${imagesHTML}
-                </div>
-              </a>
-            `;
-          } else {
-            // Regular board card
-            cardHTML = `
-              <div class="board-card">
-                <span class="num">${project.num}</span>
-                <span class="pill">${project.type}</span>
-                <h3 style="margin-top:14px;">${project.title}</h3>
-                <p>${project.description}</p>
-                ${project.link ? `<a href="${project.link}" target="_blank" rel="noopener"><span class="btn btn-dark btn-sm" style="margin-top:22px;">${project.linkText}</span></a>` : ''}
-              </div>
-            `;
+    if (!window.supabaseClient) {
+      console.error('Supabase client not found — check that supabase-config.js is loaded before main.js.');
+    } else {
+      if (window.NxNxComponents?.loadingState) {
+        projectsGrid.innerHTML = window.NxNxComponents.loadingState('Loading projects…', { fullWidth: true });
+      }
+      window.supabaseClient
+        .from('projects')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Error loading projects:', error);
+            projectsGrid.innerHTML = `<p style="grid-column:1 / -1; color:var(--ink-soft);">Projects couldn't be loaded right now.</p>`;
+            return;
           }
-          
-          const cardElement = document.createElement('div');
-          cardElement.innerHTML = cardHTML;
-          const card = cardElement.firstElementChild;
-          projectsGrid.appendChild(card);
 
-          if (card.classList.contains('reveal')) {
-            observeReveal(card);
-          }
+          projectsGrid.innerHTML = '';
+
+          (data || []).forEach((project) => {
+            let cardHTML;
+
+            if (project.is_main_featured) {
+              // Main featured card with images
+              const imagesHTML = project.images
+                ? project.images.map((img, idx) => `<img src="${img}" alt="" class="app-image-${idx === 0 ? 'work' : 'work-2'}">`).join('')
+                : '';
+
+              const linkAttr = project.is_external
+                ? `target="_blank" rel="noopener"`
+                : '';
+
+              cardHTML = `
+                <a href="${project.link}" class="board-card reveal" style="grid-column:1 / -1; display:inline-grid; grid-template-columns:1.1fr 1fr; gap:0; padding:0; text-decoration:none; color:inherit; width:100%;" ${linkAttr}>
+                  <div style="padding:40px;">
+                    <span class="pill" style="background:var(--marigold); border-color:var(--ink);">${project.type}</span>
+                    <h3 style="margin-top:18px; font-size:2.2rem;">${project.title}</h3>
+                    <p style="margin-top:12px; color:var(--ink-soft);">Client: ${project.client}. ${project.description}</p>
+                    <span class="btn btn-dark btn-sm" style="margin-top:22px;">${project.link_text}</span>
+                  </div>
+                  <div class="app-image-area">
+                    ${imagesHTML}
+                  </div>
+                </a>
+              `;
+            } else {
+              // Regular board card
+              cardHTML = `
+                <div class="board-card">
+                  <span class="num">${project.num}</span>
+                  <span class="pill">${project.type}</span>
+                  <h3 style="margin-top:14px;">${project.title}</h3>
+                  <p>${project.description}</p>
+                  ${project.link ? `<a href="${project.link}" target="_blank" rel="noopener"><span class="btn btn-dark btn-sm" style="margin-top:22px;">${project.link_text}</span></a>` : ''}
+                </div>
+              `;
+            }
+
+            const cardElement = document.createElement('div');
+            cardElement.innerHTML = cardHTML;
+            const card = cardElement.firstElementChild;
+            projectsGrid.appendChild(card);
+
+            if (card.classList.contains('reveal')) {
+              observeReveal(card);
+            }
+          });
         });
-      })
-      .catch(error => console.error('Error loading projects:', error));
+    }
   }
 
   document.querySelectorAll('form[data-demo-form]').forEach(form => {

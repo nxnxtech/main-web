@@ -98,6 +98,8 @@
         <span style="font-family:var(--font-display); font-size:1.9rem; opacity:0.55;">GHANA&nbsp;TROTRO&nbsp;TRANSIT</span>
         <span style="font-family:var(--font-display); font-size:1.9rem; opacity:0.55;">DANNY&nbsp;DREAMS</span>
         <span style="font-family:var(--font-display); font-size:1.9rem; opacity:0.55;">JL&nbsp;SURVYING&nbsp;SERVICES</span>
+        <span style="font-family:var(--font-display); font-size:1.9rem; opacity:0.55;">RM STORE</span>
+
       </div>
     </div>
   </div>
@@ -234,11 +236,17 @@
         <svg width="18" height="18" viewBox="0 0 18 18"><path d="M7 3 L13 9 L7 15" stroke="var(--ink)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
-    <div style="display:flex; gap:10px; margin-top:26px; padding-left:52px;" data-dots-container>
-      <!-- Dots generated from comments.json -->
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:26px; padding-left:52px; flex-wrap:wrap;">
+      <div style="display:flex; gap:10px;" data-dots-container>
+        <!-- Dots loaded from Supabase -->
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" data-review-open>Leave a review →</button>
     </div>
   </div>
 </section>
+
+<div data-component="review-modal"></div>
+
 <style>
   .testimonial-slide{ display:none; animation: fadeIn .4s ease; }
   .testimonial-slide.is-active{ display:block; }
@@ -279,7 +287,11 @@
 <script src="../components/header.js"></script>
 <script src="../components/footer.js"></script>
 <script src="../components/business-card.js"></script>
+<script src="../components/review-modal.js"></script>
+<script src="../components/loading.js"></script>
 <script src="../js/components.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
 <script src="../js/main.js"></script>
 </body>
 </html>
