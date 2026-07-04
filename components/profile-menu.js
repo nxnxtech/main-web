@@ -18,7 +18,8 @@
         <a href="profile.html">Edit profile</a>
         <a href="change-password.html">Change password</a>
         <a href="order-history.html">Order history</a>
-        <button type="button" data-sign-out>Sign out</button>
+        <button type="button" data-sign-out><i class="fa fa-sign-in" aria-hidden="true"></i>
+        Sign out</button>
       </div>
     </div>
   `;
@@ -54,7 +55,6 @@
 
     signOutBtn.addEventListener('click', async () => {
       await window.supabaseClient.auth.signOut();
-      window.location.href = 'index.html';
     });
 
     async function refresh() {

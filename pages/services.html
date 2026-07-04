@@ -156,11 +156,11 @@
     <form data-demo-form data-email-to="nxnxtech@gmail.com" style="display:flex; flex-direction:column; gap:18px;">
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Name</label>
-        <input type="text" name="name" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
+        <input type="text" name="name" placeholder="Nana Nketia" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
       </div>
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Email</label>
-        <input type="email" name="email" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
+        <input type="email" placeholder="e.g., nxnxtech@anything.com" name="email" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body);">
       </div>
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Project type</label>
@@ -174,7 +174,7 @@
       </div>
       <div>
         <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase;">Message</label>
-        <textarea name="message" rows="4" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body); resize:vertical;"></textarea>
+        <textarea name="message" placeholder="Tell us about the project you want to build..." rows="4" required style="width:100%; margin-top:6px; padding:12px 14px; border:2px solid var(--ink); border-radius:6px; background:var(--white); font-family:var(--font-body); resize:vertical;"></textarea>
       </div>
       <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send message</button>
       <p data-form-status style="font-family:var(--font-mono); font-size:0.82rem; color:var(--palm-dark); opacity:0; transition:opacity .3s;" class="status-msg"></p>
@@ -184,12 +184,25 @@
 </section>
 
 <div data-component="business-card"></div>
+<div data-component="product-modal"></div>
+<div data-component="checkout-modal"></div>
 
 <div data-component="footer"></div>
 
+<script src="../js/cookies.js"></script>
+<script src="../js/cart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script src="https://js.paystack.co/v2/inline.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="../components/header.js"></script>
 <script src="../components/footer.js"></script>
 <script src="../components/business-card.js"></script>
+<script src="../components/product-modal.js"></script>
+<script src="../components/checkout-modal.js"></script>
+<script src="../components/cart-bag.js"></script>
+<script src="../components/profile-menu.js"></script>
+<script src="../components/loading.js"></script>
 <script src="../js/components.js"></script>
 <script src="../js/main.js"></script>
 <style>[data-form-status].is-visible{ opacity:1 !important; }</style>

@@ -25,7 +25,7 @@
   `;
 
   function formatGHS(amount) {
-    return `GH₵ ${amount.toFixed(2)}`;
+    return `GHs ${amount.toFixed(2)}`;
   }
 
   function escapeHTML(str) {
@@ -523,7 +523,6 @@
       });
     }
 
-    // ---------- STEP: RECEIPT ----------
     function renderReceipt() {
       if (!lastOrder) { renderStep('bag'); return; }
 
@@ -659,7 +658,7 @@
     );
 
     doc.text(
-        `Customer: ${order.full_name || "Guest"}`,
+        `Customer: ${order.full_name || "Your Person"}`,
         margin + 12,
         y + 74
     );
@@ -694,7 +693,7 @@
     doc.text("Qty", 250, y + 16);
     doc.text("Amount", 390, y + 16, { align: "right" });
 
-    y += 32;
+    y += 28;
 
     doc.setFont("helvetica", "normal");
 
@@ -711,7 +710,7 @@
         );
 
         doc.text(
-            `GH₵ ${Number(item.line_total).toFixed(2)}`,
+            `GHs ${Number(item.line_total).toFixed(2)}`,
             390,
             y,
             { align: "right" }
@@ -747,12 +746,12 @@
     doc.setFontSize(14);
     doc.setTextColor(20,20,20);
 
-    doc.text("TOTAL PAID", margin + 15, y + 28);
+    doc.text("TOTAL PAID", margin + 10, y + 28);
 
     doc.text(
-        `GH₵ ${Number(order.total_amount).toFixed(2)}`,
-        pageWidth - margin - 15,
-        y + 28,
+        `GHs ${Number(order.total_amount).toFixed(2)}`,
+        pageWidth - margin - 12,
+        y + 24,
         { align: "right" }
     );
 
