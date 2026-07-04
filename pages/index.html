@@ -98,8 +98,6 @@
         <span style="font-family:var(--font-display); font-size:1.9rem; opacity:0.55;">GHANA&nbsp;TROTRO&nbsp;TRANSIT</span>
         <span style="font-family:var(--font-display); font-size:1.9rem; opacity:0.55;">DANNY&nbsp;DREAMS</span>
         <span style="font-family:var(--font-display); font-size:1.9rem; opacity:0.55;">JL&nbsp;SURVYING&nbsp;SERVICES</span>
-        <span style="font-family:var(--font-display); font-size:1.9rem; opacity:0.55;">RM STORE</span>
-
       </div>
     </div>
   </div>
@@ -266,6 +264,22 @@
   .carousel-dot.is-active{ background:var(--marigold); }
 </style>
 
+<!-- ===================== MERCH TEASER ===================== -->
+<section class="reveal" style="background:var(--paper-2); border-top:2px solid var(--ink); border-bottom:2px solid var(--ink);">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="route-tag green">Merch</span>
+        <h2 style="margin-top:14px;">Wear the talent.</h2>
+      </div>
+      <a href="merch.html" class="btn btn-outline">Shop all merch →</a>
+    </div>
+    <div id="merch-grid-home" class="merch-grid merch-grid-teaser">
+      <!-- Featured products loaded from Supabase -->
+    </div>
+  </div>
+</section>
+
 <!-- ===================== CTA ===================== -->
 <section class="reveal">
   <div class="wrap">
@@ -280,18 +294,31 @@
   </div>
 </section>
 
+
 <div data-component="business-card"></div>
+<div data-component="review-modal"></div>
+<div data-component="product-modal"></div>
+<div data-component="checkout-modal"></div>
 
 <div data-component="footer"></div>
 
+<script src="../js/cookies.js"></script>
+<script src="../js/cart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script src="https://js.paystack.co/v2/inline.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="../components/header.js"></script>
 <script src="../components/footer.js"></script>
 <script src="../components/business-card.js"></script>
 <script src="../components/review-modal.js"></script>
+<script src="../components/product-modal.js"></script>
+<script src="../components/checkout-modal.js"></script>
+<script src="../components/cart-bag.js"></script>
+<script src="../components/profile-menu.js"></script>
 <script src="../components/loading.js"></script>
 <script src="../js/components.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/supabase-config.js"></script>
 <script src="../js/main.js"></script>
+<script src="../js/merch.js"></script>
 </body>
 </html>

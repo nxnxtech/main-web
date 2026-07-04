@@ -223,7 +223,7 @@ function initSiteBehaviors() {
       const btn = form.querySelector('button[type="submit"]');
       if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
 
-      if (projectType == "") {
+      if (projectType || email || name || message == "") {
 
         if (status) {
           inputBox.classList.add('error');
