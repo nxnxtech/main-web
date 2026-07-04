@@ -170,12 +170,12 @@
         <form data-auth-form style="margin-top:20px; display:grid; gap:14px;">
           <div>
             <label class="checkout-label">Email</label>
-            <input type="email" name="email" required class="checkout-input">
+            <input type="email" placeholder="e.g., nxnxtech@anything.com" name="email" required class="checkout-input">
           </div>
           ${authMode === 'signup' ? `
             <div>
               <label class="checkout-label">Full name</label>
-              <input type="text" name="full_name" required class="checkout-input" placeholder="Enter your full name">
+              <input type="text" name="full_name" required class="checkout-input" placeholder="e.g., Nana Nketia">
             </div>
           ` : ''}
           <div>
@@ -298,11 +298,11 @@
         <form data-details-form style="margin-top:20px; display:grid; gap:14px;">
           <div>
             <label class="checkout-label">Your full name *</label>
-            <input type="text" name="full_name" required class="checkout-input" value="${escapeHTML(d.full_name || '')}">
+            <input type="text" placeholder="e.g., Nana Nketia" name="full_name" required class="checkout-input" value="${escapeHTML(d.full_name || '')}">
           </div>
           <div>
             <label class="checkout-label">Your phone number *</label>
-            <input type="tel" name="phone" required class="checkout-input" value="${escapeHTML(d.phone || '')}">
+            <input type="tel" placeholder="e.g., 020XXXXX11" name="phone" required class="checkout-input" value="${escapeHTML(d.phone || '')}">
           </div>
 
           <label class="gift-toggle">
@@ -313,15 +313,15 @@
           <div data-gift-fields style="display:${d.is_gift ? 'grid' : 'none'}; gap:14px; padding:16px; border:1.5px dashed var(--ink); border-radius:8px; background:var(--paper);">
             <div>
               <label class="checkout-label">Recipient's full name *</label>
-              <input type="text" name="recipient_name" class="checkout-input" value="${escapeHTML(d.recipient_name || '')}">
+              <input type="text" placeholder="e.g., Some One" name="recipient_name" class="checkout-input" value="${escapeHTML(d.recipient_name || '')}">
             </div>
             <div>
               <label class="checkout-label">Recipient's phone number *</label>
-              <input type="tel" name="recipient_phone" class="checkout-input" value="${escapeHTML(d.recipient_phone || '')}">
+              <input type="tel" placeholder="e.g., 054XXXXX98" name="recipient_phone" class="checkout-input" value="${escapeHTML(d.recipient_phone || '')}">
             </div>
             <div>
               <label class="checkout-label">Gift message (optional)</label>
-              <textarea name="gift_message" rows="2" class="checkout-input" style="resize:vertical;">${escapeHTML(d.gift_message || '')}</textarea>
+              <textarea name="gift_message" rows="2" placeholder="e.g., Happy birthday!, I hope you like it!, NXNX TECH, HWBT" class="checkout-input" style="resize:vertical;">${escapeHTML(d.gift_message || '')}</textarea>
             </div>
           </div>
 
@@ -339,8 +339,12 @@
             </div>
           </div>
           <div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
             <label class="checkout-label" data-gps-label>GPS address</label>
-            <input type="text" name="gps_address" placeholder="e.g. GA-123-4567" class="checkout-input" value="${escapeHTML(d.gps_address || '')}">
+            <a href="https://www.ghanapostgps.com/map/" target="_blank" style="font-size:0.85rem; text-decoration: underline; color:var(--ink-soft); margin-bottom:4px; display:inline-block;">Don't know your GPS address?</a>
+          </div>
+          </div>
+            <input type="text" name="gps_address" placeholder="e.g. GE-065-1075" class="checkout-input" value="${escapeHTML(d.gps_address || '')}">
           </div>
           <button type="submit" class="btn btn-dark" style="justify-self:start;">Continue to payment →</button>
         </form>

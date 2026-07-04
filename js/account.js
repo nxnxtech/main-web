@@ -65,11 +65,11 @@ async function initProfilePage() {
     <form data-profile-form style="margin-top:24px; display:grid; gap:16px; max-width:480px;">
       <div>
         <label class="checkout-label">Full name</label>
-        <input type="text" name="full_name" class="checkout-input" value="${escapeHTMLAccount(p.full_name || '')}">
+        <input type="text" name="full_name" placeholder="e.g., Nana Nketia" class="checkout-input" value="${escapeHTMLAccount(p.full_name || '')}">
       </div>
       <div>
         <label class="checkout-label">Phone number</label>
-        <input type="tel" name="phone" class="checkout-input" value="${escapeHTMLAccount(p.phone || '')}">
+        <input type="tel" name="phone" placeholder="e.g., 020XXXXX11" class="checkout-input" value="${escapeHTMLAccount(p.phone || '')}">
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
         <div>
@@ -81,12 +81,15 @@ async function initProfilePage() {
         </div>
         <div>
           <label class="checkout-label">Town</label>
-          <input type="text" name="town" class="checkout-input" value="${escapeHTMLAccount(p.town || '')}">
+          <input type="text" name="town" placeholder="e.g., Ablorh Adjei" class="checkout-input" value="${escapeHTMLAccount(p.town || '')}">
         </div>
       </div>
       <div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
         <label class="checkout-label">GPS address</label>
-        <input type="text" name="gps_address" class="checkout-input" value="${escapeHTMLAccount(p.gps_address || '')}">
+        <a href="https://www.ghanapostgps.com/map/" target="_blank" style="font-size:0.85rem; text-decoration: underline; color:var(--ink-soft); margin-bottom:4px; display:inline-block;">Don't know your GPS address?</a>
+     </div>
+        <input type="text" name="gps_address" class="checkout-input" placeholder="e.g., GE-065-1075" value="${escapeHTMLAccount(p.gps_address || '')}">
       </div>
       <p data-profile-status style="font-size:0.85rem; display:none;"></p>
       <button type="submit" class="btn btn-dark" style="justify-self:start;">Save changes</button>

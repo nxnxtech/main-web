@@ -41,8 +41,8 @@ function merchCardHTML(product) {
         <div class="merch-card-name">${product.name}</div>
         <div class="merch-card-price">
           ${isRange ? `From GH₵ ${discountedMin.toFixed(2)}` : `GH₵ ${discountedMin.toFixed(2)}`}
-          ${product.discount_percent ? `<span class="merch-card-original">${isRange ? `GH₵ ${min.toFixed(2)}–${max.toFixed(2)}` : `GH₵ ${min.toFixed(2)}`}</span>` : ''}
         </div>
+        ${product.discount_percent ? `<span class="merch-card-original merch-card-price" style="font-size: 0.7rem;">${isRange ? `GH₵ ${min.toFixed(2)}–${max.toFixed(2)}` : `GH₵ ${min.toFixed(2)}`}</span>` : ''}
       </div>
     </div>
   `;

@@ -621,7 +621,7 @@ section.tight{ padding: 60px 0; }
 .merch-card-name{ font-weight:700; font-size:0.95rem; }
 .merch-card-price{
   margin-top:6px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);
-  display:flex; align-items:center; gap:8px;
+  display:flex; flex-direction: row; justify-content: space-between; align-items:center; gap:8px;
 }
 .merch-card-original{ text-decoration:line-through; opacity:0.6; }
 
@@ -784,7 +784,8 @@ section.tight{ padding: 60px 0; }
   font-family:var(--font-mono); font-size:0.82rem; color:var(--ink);
 }
 .profile-dropdown a:hover, .profile-dropdown button:hover{ background:var(--paper-2); }
-.profile-dropdown [data-sign-out]{ color:#B3261E; margin-top:4px; border-top:1px solid rgba(14,15,10,0.12); padding-top:10px; }
+.profile-dropdown [data-sign-out]{ color:#B3261E; background: #d46d6828; margin-top:4px; border-top:1px solid rgba(14,15,10,0.12); padding-top:10px; }
+
 .profile-menu-floating{
   position:fixed; top:18px; right:66px; z-index:998;
 }
