@@ -534,6 +534,10 @@
       function syncHeading() {
         const isGift = giftToggle.checked;
         if (fulfillmentType === 'collect') {
+          alert(`Sorry, Collect is not available at the moment. Please use Delivery instead. \n\nIt'll be active soon. \nThank you for understanding.`);
+          fulfillmentType = 'delivery';
+          syncFulfillmentUI();
+
           deliveryHeading.textContent = isGift ? "Who's collecting this?" : 'Just need a few details.';
         } else {
           deliveryHeading.textContent = isGift ? 'Where is this being delivered?' : 'Where should this go?';
@@ -671,7 +675,7 @@
             ${details.gift_message ? `<div style="font-style:italic; margin-top:4px;">“${escapeHTML(details.gift_message)}”</div>` : ''}
           ` : ''}
           ${fulfillmentType === 'collect'
-            ? `<div style="margin-top:8px;">🏬 Collecting in person</div>`
+            ? `<div style="margin-top:8px;">🧔‍♀️ Collecting in person</div>`
             : `<div style="margin-top:8px;">🚚 ${escapeHTML(details.town || '')}, ${escapeHTML(details.region || '')}</div>
                ${details.gps_address ? `<div>${escapeHTML(details.gps_address)}</div>` : ''}`}
         </div>

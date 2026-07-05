@@ -55,6 +55,7 @@
 
     signOutBtn.addEventListener('click', async () => {
       await window.supabaseClient.auth.signOut();
+      window.location.reload();
     });
 
     async function refresh() {

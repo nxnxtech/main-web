@@ -23,7 +23,9 @@ function signInPromptHTML() {
     <div style="text-align:center; padding:40px 20px;">
       <span class="route-tag blue">Sign in required</span>
       <h3 style="margin-top:16px;">You need to be signed in to view this page.</h3>
-      <p style="margin-top:8px; color:var(--ink-soft);">Use the account icon in the navigation bar to sign in, then come back here.</p>
+      <p style="margin-top:8px; color:var(--ink-soft);">You can only sign in if you're making a purchase.</p>
+      <a href="../pages/merch.html" style="margin-top:16px;" class="btn btn-dark shop-all-btn">Merch →</a>
+
     </div>
   `;
 }
