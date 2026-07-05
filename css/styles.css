@@ -502,8 +502,9 @@ section.tight{ padding: 60px 0; }
   top: -120px;
   right: -60px;
   right: 0;
-  background: transparent;
-  border: none;
+  background: var(--ink);
+  border: 4px solid var(--marigold);
+  border-radius: 50%;
   color: var(--paper);
   cursor: pointer;
   padding: 8px;
@@ -513,6 +514,7 @@ section.tight{ padding: 60px 0; }
   transition: color 0.3s ease;
   z-index: 3;
   font-family: inherit;
+  box-shadow: var(--shadow-board-sm);
 }
 
 .business-card-close:hover {
@@ -526,12 +528,13 @@ section.tight{ padding: 60px 0; }
   position: absolute;
   background: var(--marigold);
   color: var(--ink);
-  border-radius: var(--radius);
+  border-radius: 20px;
   padding: 8px 20px;
   font-family: inherit;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  box-shadow: var(--shadow-board-sm);
 }
 
 .bg-image-cover {
@@ -560,7 +563,8 @@ section.tight{ padding: 60px 0; }
 }
 @keyframes reviewIn{ from{ opacity:0; transform:translate(-50%,-46%); } to{ opacity:1; transform:translate(-50%,-50%); } }
 .review-close{
-  position:absolute; top:14px; right:14px; background:none; border:none;
+  position:absolute; top:14px; right:14px; background:var(--marigold-2); border: 1px solid var(--ink); border-radius:50%; 
+  z-index: 2;
   cursor:pointer; color:var(--ink); padding:6px; display:flex;
 }
 .review-close:hover{ color:var(--route-red); }
@@ -607,14 +611,15 @@ section.tight{ padding: 60px 0; }
   border-radius: var(--radius);
   overflow:hidden;
   transition: transform .15s ease, box-shadow .15s ease;
+  box-shadow: 0 0 1px rgba(0,0,0,0.1);
 }
 .merch-card:hover{ transform: translate(-2px,-2px); box-shadow: var(--shadow-board-sm); }
 .merch-card.is-soldout{ opacity:0.55; cursor:default; }
 .merch-card.is-soldout:hover{ transform:none; box-shadow:none; }
 .merch-card-image-wrap{
   position:relative;
-  aspect-ratio: 1 / 1;
-  background: var(--paper-2);
+  aspect-ratio: 0.78 / 1;
+  background: var(--ink-soft);
 }
 .merch-card-image{ width:100%; height:100%; object-fit:cover; }
 .merch-card-body{ padding: 14px 16px 18px; }
@@ -635,7 +640,49 @@ section.tight{ padding: 60px 0; }
 .merch-badge-soldout{ left:10px; background:var(--ink); color:var(--paper); }
 
 @media (max-width: 900px){
-  .merch-grid, .merch-grid-teaser{ grid-template-columns: repeat(2, 1fr); }
+  .merch-grid, .merch-grid-teaser{ grid-template-columns: repeat(1, 1fr); }
+}
+
+/* ===== Merch Carousel (mobile teaser) ===== */
+.merch-carousel-wrap{ position:relative; }
+.merch-carousel-arrow{
+  display:none;
+  position:absolute; top:38%;
+  z-index:2;
+}
+.merch-carousel-arrow.is-edge-hidden{ display:none !important; }
+.merch-carousel-prev{ left:-20px; }
+.merch-carousel-next{ right:-20px; }
+
+@media (max-width: 900px){
+  .merch-grid-teaser{
+    display:flex;
+    grid-template-columns:none;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    gap:16px;
+    padding:2px 4px 8px;
+    scrollbar-width:none;
+  }
+  .merch-grid-teaser::-webkit-scrollbar{ display:none; }
+  .merch-grid-teaser .merch-card{
+    flex:0 0 78%;
+    scroll-snap-align:start;
+  }
+  .merch-carousel-wrap{ padding:0 6px; }
+  .merch-carousel-arrow{ display:flex; }
+}
+
+@media (min-width: 900px) {
+  .merch-carousel-arrow{
+    display: none;
+  }
+  .merch-carousel-prev{ display: none; }
+  .merch-carousel-next{ display: none; }
+  .carousel-arrow{
+    display: none;
+  }
 }
 
 /* ===== Product Modal ===== */
@@ -653,11 +700,11 @@ section.tight{ padding: 60px 0; }
   box-shadow:var(--shadow-board); padding:36px;
 }
 .product-dialog-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:36px; }
-.product-hero-wrap{ position:relative; background:var(--paper-2); border-radius:10px; overflow:hidden; aspect-ratio:1/1; }
+.product-hero-wrap{ position:relative; background:var(--paper-2); border-radius:10px; overflow:hidden; aspect-ratio:0.7/1; box-shadow: var(--shadow-board-sm); }
 .product-hero{ width:100%; height:100%; object-fit:cover; }
 .product-badge{ position:absolute; top:12px; left:12px; }
 .product-thumbs{ display:flex; gap:10px; margin-top:12px; }
-.product-thumbs img{ width:64px; height:64px; object-fit:cover; border-radius:6px; border:1.5px solid var(--ink); cursor:pointer; opacity:0.55; transition:opacity .15s ease, border-color .15s ease; }
+.product-thumbs img{ width:64px; height:64px; object-fit:fit; border-radius:6px; border:1.5px solid var(--ink); cursor:pointer; opacity:0.55; transition:opacity .15s ease, border-color .15s ease;}
 .product-thumbs img:hover{ opacity:0.85; }
 .product-thumbs img.is-active{ opacity:1; border-color:var(--marigold-2); border-width:2.5px; }
 .product-size-row{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
@@ -666,11 +713,14 @@ section.tight{ padding: 60px 0; }
   font-family:var(--font-mono); font-size:0.82rem; cursor:pointer;
 }
 .product-size-btn.is-selected{ background:var(--ink); color:var(--paper); }
+.product-size-btn.is-disabled,
+.product-size-btn:disabled{ opacity:0.45; cursor:default; }
 .product-qty-row{ display:flex; align-items:center; gap:14px; margin-top:8px; }
 .product-qty-row button{
   width:32px; height:32px; border:1.5px solid var(--ink); border-radius:6px; background:var(--paper);
   font-size:1.1rem; cursor:pointer; line-height:1;
 }
+.product-qty-row button:disabled{ opacity:0.35; cursor:not-allowed; }
 @media (max-width: 760px){
   .product-dialog-grid{ grid-template-columns: 1fr; }
 }
@@ -718,12 +768,15 @@ section.tight{ padding: 60px 0; }
   display:grid; grid-template-columns: 56px 1fr auto; gap:14px; align-items:center;
   padding-bottom:14px; border-bottom:1px solid rgba(14,15,10,0.12);
 }
-.bag-row-image{ width:56px; height:56px; object-fit:cover; border-radius:6px; border:1.5px solid var(--ink); }
+.bag-row-image{ width:56px; height:56px; object-fit:fit; border-radius:6px; border:1.5px solid var(--ink); 
+box-shadow: var(--shadow-board-sm);
+}
 .bag-row-qty{ display:flex; align-items:center; gap:8px; margin-top:6px; }
 .bag-row-qty button{
   width:24px; height:24px; border:1.5px solid var(--ink); border-radius:5px; background:var(--paper);
   cursor:pointer; line-height:1; font-size:0.9rem;
 }
+.bag-row-qty button:disabled{ opacity:0.35; cursor:not-allowed; }
 .bag-row-right{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
 .bag-remove{
   width:28px; height:28px; border:none; background:#bc39322a; border-radius:7px;

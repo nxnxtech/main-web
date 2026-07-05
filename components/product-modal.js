@@ -78,6 +78,7 @@
     let variants = [];
     let selectedVariant = null;
     let quantity = 1;
+    let totalStock = 0;
 
     function setStatus(message, isError) {
       if (!message) {
@@ -106,10 +107,31 @@
     }
 
     function updateQtyAndAddState() {
-      const soldOut = !selectedVariant || selectedVariant.stock === 0;
       qtyEl.textContent = String(quantity);
+
+      if (totalStock === 0) {
+        // Every size is sold out — no point asking the user to pick one.
+        addBtn.disabled = true;
+        addBtn.textContent = 'Sold out';
+        qtyMinus.disabled = true;
+        qtyPlus.disabled = true;
+        return;
+      }
+
+      if (!selectedVariant) {
+        // Stock exists somewhere, just nothing picked yet — not the same as sold out.
+        addBtn.disabled = true;
+        addBtn.textContent = 'Select a size';
+        qtyMinus.disabled = true;
+        qtyPlus.disabled = true;
+        return;
+      }
+
+      const soldOut = selectedVariant.stock === 0;
       addBtn.disabled = soldOut;
       addBtn.textContent = soldOut ? 'Sold out' : 'Add to bag';
+      qtyMinus.disabled = soldOut || quantity <= 1;
+      qtyPlus.disabled = soldOut || quantity >= selectedVariant.stock;
     }
 
     function selectVariant(variant, buttonEl) {
@@ -148,7 +170,7 @@
       });
       if (images.length < 2) thumbs.style.display = 'none'; else thumbs.style.display = 'flex';
 
-      const totalStock = variants.reduce((sum, v) => sum + v.stock, 0);
+      totalStock = variants.reduce((sum, v) => sum + v.stock, 0);
       if (totalStock === 0) {
         badge.textContent = 'Sold out';
         badge.style.display = 'inline-block';
@@ -205,13 +227,13 @@
 
     qtyMinus.addEventListener('click', () => {
       quantity = Math.max(1, quantity - 1);
-      qtyEl.textContent = String(quantity);
+      updateQtyAndAddState();
     });
 
     qtyPlus.addEventListener('click', () => {
       const max = selectedVariant?.stock ?? 99;
       quantity = Math.min(max, quantity + 1);
-      qtyEl.textContent = String(quantity);
+      updateQtyAndAddState();
     });
 
     addBtn.addEventListener('click', () => {

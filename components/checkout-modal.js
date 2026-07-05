@@ -105,9 +105,9 @@
                 ${item.size ? `Size ${escapeHTML(item.size)} · ` : ''}${formatGHS(item.price * (item.discount_percent ? 1 - item.discount_percent / 100 : 1))}
               </div>
               <div class="bag-row-qty">
-                <button type="button" data-bag-minus="${i}" aria-label="Decrease quantity">−</button>
+                <button type="button" data-bag-minus="${i}" aria-label="Decrease quantity" ${item.quantity <= 1 ? 'disabled' : ''}>−</button>
                 <span>${item.quantity}</span>
-                <button type="button" data-bag-plus="${i}" aria-label="Increase quantity">+</button>
+                <button type="button" data-bag-plus="${i}" aria-label="Increase quantity" ${item.quantity >= (item.stock ?? 99) ? 'disabled' : ''}>+</button>
               </div>
             </div>
             <div class="bag-row-right">

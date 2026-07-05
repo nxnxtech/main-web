@@ -88,12 +88,59 @@ function loadMerchInto(grid, options) {
         if (product) window.openProductModal?.(product);
       });
     });
+
+    opts.onLoaded?.();
   });
+}
+
+function initMerchCarouselControls(grid) {
+  if (!grid) return;
+  const wrap = grid.closest('.merch-carousel-wrap');
+  if (!wrap) return;
+
+  const prevBtn = wrap.querySelector('[data-merch-prev]');
+  const nextBtn = wrap.querySelector('[data-merch-next]');
+  if (!prevBtn || !nextBtn) return;
+
+  const scrollByCard = (direction) => {
+    const card = grid.querySelector('.merch-card');
+    if (!card) return;
+    const gap = parseFloat(getComputedStyle(grid).columnGap || getComputedStyle(grid).gap || '0') || 0;
+    const amount = card.getBoundingClientRect().width + gap;
+    grid.scrollBy({ left: direction * amount, behavior: 'smooth' });
+  };
+
+  function updateArrowVisibility() {
+    const maxScroll = grid.scrollWidth - grid.clientWidth;
+    const scrollable = maxScroll > 1; // nothing to scroll — e.g. content fits on screen
+    const atStart = grid.scrollLeft <= 1;
+    const atEnd = grid.scrollLeft >= maxScroll - 1;
+
+    prevBtn.classList.toggle('is-edge-hidden', !scrollable || atStart);
+    nextBtn.classList.toggle('is-edge-hidden', !scrollable || atEnd);
+  }
+
+  prevBtn.addEventListener('click', () => scrollByCard(-1));
+  nextBtn.addEventListener('click', () => scrollByCard(1));
+
+  grid.addEventListener('scroll', updateArrowVisibility);
+  window.addEventListener('resize', updateArrowVisibility);
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(updateArrowVisibility).observe(grid);
+  }
+
+  updateArrowVisibility();
 }
 
 function initMerchGrid() {
   loadMerchInto(document.getElementById('merch-grid'));
-  loadMerchInto(document.getElementById('merch-grid-home'), { limit: 4, loadingLabel: 'Loading merch…' });
+
+  const homeGrid = document.getElementById('merch-grid-home');
+  loadMerchInto(homeGrid, {
+    limit: 4,
+    loadingLabel: 'Loading merch…',
+    onLoaded: () => initMerchCarouselControls(homeGrid),
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
