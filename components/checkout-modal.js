@@ -377,7 +377,7 @@
         <p style="margin-top:16px; color:var(--ink-soft); font-size:0.9rem;">As a guest, your receipt is the only record of this order — make sure to download or screenshot it.</p>
         <div style="margin-top:22px; display:flex; gap:12px; flex-wrap:wrap;">
           <button type="button" class="btn btn-dark" data-guest-create-account>Create a free account</button>
-          <button type="button" class="btn btn-outline" data-guest-continue>Continue as guest</button>
+          <button type="button" class=".btn btn-sm btn-outline" data-guest-continue>Continue as guest</button>
         </div>
         <button type="button" class="checkout-back" data-back-to-auth>← Back</button>
       `;
@@ -534,9 +534,9 @@
       function syncHeading() {
         const isGift = giftToggle.checked;
         if (fulfillmentType === 'collect') {
-          alert(`Sorry, Collect is not available at the moment. Please use Delivery instead. \n\nIt'll be active soon. \nThank you for understanding.`);
-          fulfillmentType = 'delivery';
-          syncFulfillmentUI();
+          //alert(`Sorry, Collect is not available at the moment. Please use Delivery instead. \n\nIt'll be active soon. \nThank you for understanding.`);
+          //fulfillmentType = 'delivery';
+          //syncFulfillmentUI();
 
           deliveryHeading.textContent = isGift ? "Who's collecting this?" : 'Just need a few details.';
         } else {
@@ -686,7 +686,7 @@
             <input type="text" data-discount-input class="checkout-input" placeholder="e.g. NXNX10" value="${appliedDiscount ? escapeHTML(appliedDiscount.code) : ''}" ${appliedDiscount ? 'disabled' : ''} style="flex:1;">
             ${appliedDiscount
               ? `<button type="button" class="btn btn-outline" data-discount-remove>Remove</button>`
-              : `<button type="button" class="btn btn-outline" data-discount-apply>Apply</button>`}
+              : `<button type="button" class="btn btn-outline btn-sm" data-discount-apply>Apply</button>`}
           </div>
           <p data-discount-status style="font-size:0.85rem; margin-top:6px; ${appliedDiscount ? '' : 'display:none;'} color:${appliedDiscount ? 'var(--palm)' : '#B3261E'};">${appliedDiscount ? `${appliedDiscount.percent}% off applied.` : ''}</p>
         </div>
@@ -760,10 +760,6 @@
           gift_message: details.gift_message || null,
           fulfillment_type: fulfillmentType,
           discount_code: appliedDiscount ? appliedDiscount.code : null,
-          // Guest checkout: no Supabase session, so there's no user_id to key
-          // the order off of. The 'create-checkout' function needs to accept
-          // being called without auth in this case and store guest_email on
-          // the order instead of a user_id (see note in project reply).
           is_guest: isGuest,
           guest_email: isGuest ? (details.email || null) : null,
         };
@@ -870,7 +866,7 @@
     }
 
     function downloadReceiptPDF(order) {
-    if (typeof window.jspdf === "undefined") {
+      if (typeof window.jspdf === "undefined") {
         window.print();
         return;
     }
