@@ -453,7 +453,7 @@
 
         <div class="auth-tabs" style="margin-top:16px;">
           <button type="button" class="auth-tab ${fulfillmentType === 'delivery' ? 'is-active' : ''}" data-fulfillment-tab="delivery">Delivery</button>
-          <button type="button" class="auth-tab ${fulfillmentType === 'collect' ? 'is-active' : ''}" data-fulfillment-tab="collect">Collect in person</button>
+          <button type="button" class="auth-tab ${fulfillmentType === 'collect' ? 'is-active' : ''}" data-fulfillment-tab="collect">Collect</button>
         </div>
 
         <form data-details-form style="margin-top:20px; display:grid; gap:14px;">
