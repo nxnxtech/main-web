@@ -1,8 +1,3 @@
-// Checkout Modal component
-// Self-contained: registers markup, wires its own step machine
-// (bag → auth → details → review → receipt), and exposes
-// window.openCheckoutModal(step) for the cart bag / product modal to call.
-
 (function () {
   window.NxNxComponents = window.NxNxComponents || {};
 
@@ -34,6 +29,85 @@
     return div.innerHTML;
   }
 
+  // ---------- DELIVERY FEE (from public.delivery_settings) ----------
+  let deliverySettingsCache = null;
+
+  async function getDeliverySettings() {
+    if (deliverySettingsCache) return deliverySettingsCache;
+
+    const { data, error } = await window.supabaseClient
+      .from('delivery_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+
+    if (error || !data) {
+      console.error('Error loading delivery settings:', error);
+      // Safe fallback so the UI doesn't break if the row is missing.
+      deliverySettingsCache = { base_fee: 0, half_off_threshold: Infinity, half_off_percent: 0, free_threshold: Infinity };
+    } else {
+      deliverySettingsCache = data;
+    }
+    return deliverySettingsCache;
+  }
+
+  function computeDeliveryFee(subtotal, fulfillmentType, settings) {
+    if (fulfillmentType === 'collect' || !settings) return 0;
+    if (subtotal >= Number(settings.free_threshold)) return 0;
+    if (subtotal >= Number(settings.half_off_threshold)) {
+      return Number(settings.base_fee) * (1 - Number(settings.half_off_percent) / 100);
+    }
+    return Number(settings.base_fee);
+  }
+
+  // ---------- DISCOUNT CODES (from public.discount_codes / discount_code_products) ----------
+  async function validateDiscountCode(rawCode, items) {
+    const code = (rawCode || '').trim().toUpperCase();
+    if (!code) return { error: 'Please enter a code.' };
+
+    const { data: discount, error } = await window.supabaseClient
+      .from('discount_codes')
+      .select('*, discount_code_products(product_id)')
+      .eq('code', code)
+      .maybeSingle();
+
+    if (error || !discount) return { error: "That code isn't valid." };
+    if (!discount.is_active) return { error: 'That code is no longer active.' };
+
+    const now = new Date();
+    if (discount.starts_at && new Date(discount.starts_at) > now) return { error: "That code isn't active yet." };
+    if (discount.expires_at && new Date(discount.expires_at) < now) return { error: 'That code has expired.' };
+    if (discount.max_uses != null && discount.used_count >= discount.max_uses) {
+      return { error: 'That code has reached its usage limit.' };
+    }
+
+    // applies_to: 'all' → whole bag, 'products' → only the linked merch_products rows
+    const eligibleProductIds = discount.applies_to === 'products'
+      ? new Set((discount.discount_code_products || []).map((p) => p.product_id))
+      : null;
+
+    let discountableTotal = 0;
+    items.forEach((item) => {
+      const lineTotal = cartLineTotal(item);
+      if (eligibleProductIds === null || eligibleProductIds.has(item.product_id)) {
+        discountableTotal += lineTotal;
+      }
+    });
+
+    if (eligibleProductIds !== null && discountableTotal === 0) {
+      return { error: "This code doesn't apply to anything in your bag." };
+    }
+
+    const discountAmount = discountableTotal * (Number(discount.percent) / 100);
+
+    return {
+      code: discount.code,
+      percent: Number(discount.percent),
+      appliesTo: discount.applies_to,
+      discountAmount,
+    };
+  }
+
   function initCheckoutModal() {
     const modal = document.querySelector('[data-checkout-modal]');
     if (!modal) return;
@@ -45,6 +119,8 @@
     let authMode = 'signin';
     let details = getJSONCookie('nxnx_checkout_details', {});
     let lastOrder = null;
+    let fulfillmentType = details.fulfillment_type || 'delivery'; // 'delivery' | 'collect'
+    let appliedDiscount = null; // { code, percent, appliesTo, discountAmount }
 
     function openModal(step) {
       modal.classList.add('is-open');
@@ -56,6 +132,8 @@
       modal.classList.remove('is-open');
       document.body.style.overflow = '';
     }
+
+    document.addEventListener('cart:updated', () => { appliedDiscount = null; });
 
     backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); }, true);
     closeBtn.addEventListener('click', closeModal);
@@ -295,6 +373,12 @@
       stepsEl.innerHTML = `
         <span class="route-tag blue">Delivery details</span>
         <h3 style="margin-top:16px;" data-delivery-heading>Where should this go?</h3>
+
+        <div class="auth-tabs" style="margin-top:16px;">
+          <button type="button" class="auth-tab ${fulfillmentType === 'delivery' ? 'is-active' : ''}" data-fulfillment-tab="delivery">Delivery</button>
+          <button type="button" class="auth-tab ${fulfillmentType === 'collect' ? 'is-active' : ''}" data-fulfillment-tab="collect">Collect in person</button>
+        </div>
+
         <form data-details-form style="margin-top:20px; display:grid; gap:14px;">
           <div>
             <label class="checkout-label">Your full name *</label>
@@ -325,27 +409,33 @@
             </div>
           </div>
 
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-            <div>
-              <label class="checkout-label" data-region-label>Region *</label>
-              <select name="region" required class="checkout-input">
-                <option value="">Select…</option>
-                ${GHANA_REGIONS.map((r) => `<option value="${r}" ${d.region === r ? 'selected' : ''}>${r}</option>`).join('')}
-              </select>
+          <div data-delivery-fields style="display:${fulfillmentType === 'collect' ? 'none' : 'grid'}; gap:14px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div>
+                <label class="checkout-label" data-region-label>Region *</label>
+                <select name="region" ${fulfillmentType === 'collect' ? '' : 'required'} class="checkout-input">
+                  <option value="">Select…</option>
+                  ${GHANA_REGIONS.map((r) => `<option value="${r}" ${d.region === r ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="checkout-label" data-town-label>Town *</label>
+                <input type="text" name="town" ${fulfillmentType === 'collect' ? '' : 'required'} class="checkout-input" value="${escapeHTML(d.town || '')}">
+              </div>
             </div>
             <div>
-              <label class="checkout-label" data-town-label>Town *</label>
-              <input type="text" name="town" required class="checkout-input" value="${escapeHTML(d.town || '')}">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="checkout-label" data-gps-label>GPS address</label>
+                <a href="https://www.ghanapostgps.com/map/" target="_blank" style="font-size:0.85rem; text-decoration: underline; color:var(--ink-soft); margin-bottom:4px; display:inline-block;">Don't know your GPS address?</a>
+              </div>
+              <input type="text" name="gps_address" placeholder="e.g. GE-065-1075" class="checkout-input" value="${escapeHTML(d.gps_address || '')}">
             </div>
           </div>
-          <div>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <label class="checkout-label" data-gps-label>GPS address</label>
-            <a href="https://www.ghanapostgps.com/map/" target="_blank" style="font-size:0.85rem; text-decoration: underline; color:var(--ink-soft); margin-bottom:4px; display:inline-block;">Don't know your GPS address?</a>
-          </div>
-          </div>
-            <input type="text" name="gps_address" placeholder="e.g. GE-065-1075" class="checkout-input" value="${escapeHTML(d.gps_address || '')}">
-          </div>
+
+          <p data-collect-note style="font-size:0.85rem; color:var(--ink-soft); display:${fulfillmentType === 'collect' ? 'block' : 'none'};">
+            No delivery fee — pick this up from us once your order is confirmed. We'll reach you on the phone number above.
+          </p>
+
           <button type="submit" class="btn btn-dark" style="justify-self:start;">Continue to payment →</button>
         </form>
         <button type="button" class="checkout-back" data-back-to-bag>← Back to bag</button>
@@ -359,18 +449,51 @@
       const regionLabel = stepsEl.querySelector('[data-region-label]');
       const townLabel = stepsEl.querySelector('[data-town-label]');
       const gpsLabel = stepsEl.querySelector('[data-gps-label]');
+      const regionInput = stepsEl.querySelector('[name="region"]');
+      const townInput = stepsEl.querySelector('[name="town"]');
+      const deliveryFieldsWrap = stepsEl.querySelector('[data-delivery-fields]');
+      const collectNote = stepsEl.querySelector('[data-collect-note]');
+
+      function syncHeading() {
+        const isGift = giftToggle.checked;
+        if (fulfillmentType === 'collect') {
+          deliveryHeading.textContent = isGift ? "Who's collecting this?" : 'Just need a few details.';
+        } else {
+          deliveryHeading.textContent = isGift ? 'Where is this being delivered?' : 'Where should this go?';
+        }
+        regionLabel.textContent = isGift ? "Recipient's region *" : 'Region *';
+        townLabel.textContent = isGift ? "Recipient's town *" : 'Town *';
+        gpsLabel.textContent = isGift ? "Recipient's GPS address" : 'GPS address';
+      }
 
       function syncGiftUI(isGift) {
         giftFields.style.display = isGift ? 'grid' : 'none';
         recipientNameInput.required = isGift;
         recipientPhoneInput.required = isGift;
-        deliveryHeading.textContent = isGift ? 'Where is this being delivered?' : 'Where should this go?';
-        regionLabel.textContent = isGift ? "Recipient's region *" : 'Region *';
-        townLabel.textContent = isGift ? "Recipient's town *" : 'Town *';
-        gpsLabel.textContent = isGift ? "Recipient's GPS address" : 'GPS address';
+        syncHeading();
       }
+
+      function syncFulfillmentUI() {
+        stepsEl.querySelectorAll('[data-fulfillment-tab]').forEach((tab) => {
+          tab.classList.toggle('is-active', tab.dataset.fulfillmentTab === fulfillmentType);
+        });
+        const isCollect = fulfillmentType === 'collect';
+        deliveryFieldsWrap.style.display = isCollect ? 'none' : 'grid';
+        collectNote.style.display = isCollect ? 'block' : 'none';
+        regionInput.required = !isCollect;
+        townInput.required = !isCollect;
+        syncHeading();
+      }
+
       syncGiftUI(giftToggle.checked);
       giftToggle.addEventListener('change', () => syncGiftUI(giftToggle.checked));
+
+      stepsEl.querySelectorAll('[data-fulfillment-tab]').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          fulfillmentType = tab.dataset.fulfillmentTab;
+          syncFulfillmentUI();
+        });
+      });
 
       stepsEl.querySelector('[data-back-to-bag]')?.addEventListener('click', () => renderStep('bag'));
 
@@ -380,13 +503,14 @@
         details = {
           full_name: form.full_name.value.trim(),
           phone: form.phone.value.trim(),
-          region: form.region.value,
-          town: form.town.value.trim(),
-          gps_address: form.gps_address.value.trim(),
+          region: fulfillmentType === 'collect' ? '' : form.region.value,
+          town: fulfillmentType === 'collect' ? '' : form.town.value.trim(),
+          gps_address: fulfillmentType === 'collect' ? '' : form.gps_address.value.trim(),
           is_gift: form.is_gift.checked,
           recipient_name: form.is_gift.checked ? form.recipient_name.value.trim() : '',
           recipient_phone: form.is_gift.checked ? form.recipient_phone.value.trim() : '',
           gift_message: form.is_gift.checked ? form.gift_message.value.trim() : '',
+          fulfillment_type: fulfillmentType,
         };
         setJSONCookie('nxnx_checkout_details', details, 30);
 
@@ -407,9 +531,23 @@
     }
 
     // ---------- STEP: REVIEW + PAY ----------
-    function renderReview() {
+    async function renderReview() {
       const items = getCart();
       const subtotal = cartTotal();
+      const settings = await getDeliverySettings();
+
+      function currentDeliveryFee() {
+        return computeDeliveryFee(subtotal, fulfillmentType, settings);
+      }
+
+      function currentDiscountAmount() {
+        return appliedDiscount ? appliedDiscount.discountAmount : 0;
+      }
+
+      function grandTotal() {
+        const total = subtotal - currentDiscountAmount() + currentDeliveryFee();
+        return Math.max(0, total);
+      }
 
       const rows = items.map((item) => `
         <div class="bag-row" style="grid-template-columns:1fr auto;">
@@ -419,6 +557,29 @@
           <div style="font-family:var(--font-mono);">${formatGHS(cartLineTotal(item))}</div>
         </div>
       `).join('');
+
+      function summaryHTML() {
+        const deliveryFee = currentDeliveryFee();
+        const discountAmount = currentDiscountAmount();
+        return `
+          <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--ink-soft); font-family:var(--font-mono);">
+            <span>Subtotal</span><span>${formatGHS(subtotal)}</span>
+          </div>
+          ${appliedDiscount ? `
+            <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--palm); font-family:var(--font-mono); margin-top:6px;">
+              <span>Discount (${escapeHTML(appliedDiscount.code)} · -${appliedDiscount.percent}%)</span><span>-${formatGHS(discountAmount)}</span>
+            </div>
+          ` : ''}
+          <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--ink-soft); font-family:var(--font-mono); margin-top:6px;">
+            <span>${fulfillmentType === 'collect' ? 'Collection' : 'Delivery'}</span>
+            <span>${deliveryFee === 0 ? 'Free' : formatGHS(deliveryFee)}</span>
+          </div>
+          <div class="bag-summary" style="margin-top:12px;">
+            <span>Total</span>
+            <span style="font-family:var(--font-display); font-size:1.6rem;">${formatGHS(grandTotal())}</span>
+          </div>
+        `;
+      }
 
       stepsEl.innerHTML = `
         <span class="route-tag blue">Review &amp; pay</span>
@@ -430,19 +591,60 @@
             <div style="margin-top:8px; color:var(--ink);">🎁 Gift for ${escapeHTML(details.recipient_name || '')} · ${escapeHTML(details.recipient_phone || '')}</div>
             ${details.gift_message ? `<div style="font-style:italic; margin-top:4px;">“${escapeHTML(details.gift_message)}”</div>` : ''}
           ` : ''}
-          <div style="margin-top:8px;">${escapeHTML(details.town || '')}, ${escapeHTML(details.region || '')}</div>
-          ${details.gps_address ? `<div>${escapeHTML(details.gps_address)}</div>` : ''}
+          ${fulfillmentType === 'collect'
+            ? `<div style="margin-top:8px;">🏬 Collecting in person</div>`
+            : `<div style="margin-top:8px;">🚚 ${escapeHTML(details.town || '')}, ${escapeHTML(details.region || '')}</div>
+               ${details.gps_address ? `<div>${escapeHTML(details.gps_address)}</div>` : ''}`}
         </div>
-        <div class="bag-summary">
-          <span>Total</span>
-          <span style="font-family:var(--font-display); font-size:1.6rem;">${formatGHS(subtotal)}</span>
+
+        <div style="margin-top:18px;">
+          <label class="checkout-label">Discount code</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" data-discount-input class="checkout-input" placeholder="e.g. NXNX10" value="${appliedDiscount ? escapeHTML(appliedDiscount.code) : ''}" ${appliedDiscount ? 'disabled' : ''} style="flex:1;">
+            ${appliedDiscount
+              ? `<button type="button" class="btn btn-outline" data-discount-remove>Remove</button>`
+              : `<button type="button" class="btn btn-outline" data-discount-apply>Apply</button>`}
+          </div>
+          <p data-discount-status style="font-size:0.85rem; margin-top:6px; ${appliedDiscount ? '' : 'display:none;'} color:${appliedDiscount ? 'var(--palm)' : '#B3261E'};">${appliedDiscount ? `${appliedDiscount.percent}% off applied.` : ''}</p>
         </div>
+
+        <div data-summary style="margin-top:16px;">${summaryHTML()}</div>
+
         <p data-review-status style="font-size:0.85rem; display:none; margin-top:10px;"></p>
         <button type="button" class="btn btn-dark" style="margin-top:20px; width:100%; justify-content:center;" data-make-payment>Make payment</button>
         <button type="button" class="checkout-back" data-back-to-details>← Edit details</button>
       `;
 
       stepsEl.querySelector('[data-back-to-details]')?.addEventListener('click', () => renderStep('details'));
+
+      stepsEl.querySelector('[data-discount-apply]')?.addEventListener('click', async () => {
+        const input = stepsEl.querySelector('[data-discount-input]');
+        const discountStatus = stepsEl.querySelector('[data-discount-status]');
+        const applyBtn = stepsEl.querySelector('[data-discount-apply]');
+
+        applyBtn.disabled = true;
+        applyBtn.textContent = 'Checking…';
+
+        const result = await validateDiscountCode(input.value, items);
+
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'Apply';
+
+        if (result.error) {
+          discountStatus.textContent = result.error;
+          discountStatus.style.display = 'block';
+          discountStatus.style.color = '#B3261E';
+          return;
+        }
+
+        appliedDiscount = result;
+        renderReview();
+      });
+
+      stepsEl.querySelector('[data-discount-remove]')?.addEventListener('click', () => {
+        appliedDiscount = null;
+        renderReview();
+      });
 
       stepsEl.querySelector('[data-make-payment]')?.addEventListener('click', async (e) => {
         const btn = e.target;
@@ -473,6 +675,8 @@
           recipient_name: details.recipient_name || null,
           recipient_phone: details.recipient_phone || null,
           gift_message: details.gift_message || null,
+          fulfillment_type: fulfillmentType,
+          discount_code: appliedDiscount ? appliedDiscount.code : null,
         };
 
         const { data, error } = await window.supabaseClient.functions.invoke('create-checkout', { body: payload });
@@ -534,6 +738,8 @@
         </div>
       `).join('');
 
+      const cartTotal = (Number(lastOrder.subtotal) || 0) - (Number(lastOrder.discount_total) || 0);
+
       stepsEl.innerHTML = `
         <span class="route-tag green">Payment successful</span>
         <h3 style="margin-top:16px;">Thanks, ${escapeHTML(lastOrder.full_name)}.</h3>
@@ -544,6 +750,11 @@
             ${new Date(lastOrder.paid_at || lastOrder.created_at).toLocaleString()}
           </div>
           <div class="bag-rows" style="margin-top:14px;">${rows}</div>
+          <div style="font-family:var(--font-mono); font-size:0.8rem; color:var(--ink-soft); margin-top:10px;">
+            <div style="display:flex; justify-content:space-between;"><span>Cart total</span><span>${formatGHS(cartTotal)}</span></div>
+            ${lastOrder.discount_code_amount ? `<div style="display:flex; justify-content:space-between; color:var(--palm);"><span>Discount${lastOrder.discount_code ? ` (${escapeHTML(lastOrder.discount_code)})` : ''}</span><span>-${formatGHS(Number(lastOrder.discount_code_amount))}</span></div>` : ''}
+            ${lastOrder.delivery_fee != null ? `<div style="display:flex; justify-content:space-between;"><span>${lastOrder.fulfillment_type === 'collect' ? 'Collection' : 'Delivery'}</span><span>${lastOrder.delivery_fee === 0 ? 'Free' : formatGHS(Number(lastOrder.delivery_fee))}</span></div>` : ''}
+          </div>
           <div class="bag-summary">
             <span>Total paid</span>
             <span style="font-family:var(--font-display); font-size:1.6rem;">${formatGHS(lastOrder.total_amount)}</span>
@@ -554,7 +765,9 @@
             </div>
           ` : ''}
           <div style="margin-top:6px; font-family:var(--font-mono); font-size:0.8rem; color:var(--ink-soft);">
-            Delivering to: ${escapeHTML(lastOrder.town)}, ${escapeHTML(lastOrder.region)}
+            ${lastOrder.fulfillment_type === 'collect'
+              ? 'Collecting in person'
+              : `Delivering to: ${escapeHTML(lastOrder.town)}, ${escapeHTML(lastOrder.region)}`}
           </div>
         </div>
         <div style="display:flex; gap:12px; margin-top:22px; flex-wrap:wrap;">
@@ -727,6 +940,37 @@
     y += 20;
 
     // ======================================================
+    // SUMMARY (cart total, discount, delivery)
+    // ======================================================
+
+    const cartTotal = (Number(order.subtotal) || 0) - (Number(order.discount_total) || 0);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(gray[0], gray[1], gray[2]);
+
+    doc.text("Cart total", margin + 10, y);
+    doc.text(`GHs ${cartTotal.toFixed(2)}`, pageWidth - margin - 12, y, { align: "right" });
+    y += 16;
+
+    if (order.discount_code_amount) {
+        const codeLabel = order.discount_code ? `Discount (${order.discount_code})` : "Discount";
+        doc.text(codeLabel, margin + 10, y);
+        doc.text(`-GHs ${Number(order.discount_code_amount).toFixed(2)}`, pageWidth - margin - 12, y, { align: "right" });
+        y += 16;
+    }
+
+    if (order.delivery_fee != null) {
+        const deliveryLabel = order.fulfillment_type === "collect" ? "Collection" : "Delivery";
+        const deliveryValue = Number(order.delivery_fee) === 0 ? "Free" : `GHs ${Number(order.delivery_fee).toFixed(2)}`;
+        doc.text(deliveryLabel, margin + 10, y);
+        doc.text(deliveryValue, pageWidth - margin - 12, y, { align: "right" });
+        y += 16;
+    }
+
+    y += 8;
+
+    // ======================================================
     // TOTAL
     // ======================================================
 
@@ -791,6 +1035,165 @@
 
     doc.save(`nxnx-receipt-${order.id.slice(0,8)}.pdf`);
 }
+
+    // ---------- RESUME PAYMENT: confirm current price before paying ----------
+    // Used by order-history.html when someone resumes a pending order. Prices,
+    // delivery thresholds, and discount codes can all change between when an
+    // order was placed and when it's actually paid for, so we re-check what we
+    // reasonably can and let the shopper confirm before charging them.
+    async function computeResumePricing(order) {
+      const settings = await getDeliverySettings();
+      const deliveryFee = computeDeliveryFee(Number(order.subtotal) || 0, order.fulfillment_type, settings);
+
+      let discountStillActive = null; // null = no code on this order / unknown
+      let discountAmount = Number(order.discount_code_amount ?? order.discount_total ?? 0);
+
+      if (order.discount_code) {
+        const { data: discount, error } = await window.supabaseClient
+          .from('discount_codes')
+          .select('*')
+          .eq('code', order.discount_code)
+          .maybeSingle();
+
+        if (!error && discount) {
+          const now = new Date();
+          const active = discount.is_active
+            && !(discount.starts_at && new Date(discount.starts_at) > now)
+            && !(discount.expires_at && new Date(discount.expires_at) < now)
+            && !(discount.max_uses != null && discount.used_count >= discount.max_uses);
+
+          discountStillActive = active;
+          if (!active) discountAmount = 0;
+        }
+      }
+
+      // Best-effort live re-pricing of line items. Only attempted when every
+      // item on the order carries a variant_id we can look up. NOTE: adjust
+      // the table/column names here (currently 'merch_product_variants' /
+      // 'price') to match whatever your products schema actually uses — this
+      // wasn't visible in the files provided, so it fails safe (falls back to
+      // the order's stored subtotal) rather than guess wrong.
+      let subtotal = Number(order.subtotal) || 0;
+      const items = order.items || [];
+
+      if (items.length && items.every((i) => i.variant_id)) {
+        try {
+          const { data: variants, error } = await window.supabaseClient
+            .from('merch_product_variants')
+            .select('id, price')
+            .in('id', items.map((i) => i.variant_id));
+
+          if (!error && variants) {
+            const priceById = new Map(variants.map((v) => [v.id, Number(v.price)]));
+            let freshSubtotal = 0;
+            let allFound = true;
+            items.forEach((item) => {
+              const price = priceById.get(item.variant_id);
+              if (price == null) { allFound = false; return; }
+              freshSubtotal += price * item.quantity;
+            });
+            if (allFound) subtotal = freshSubtotal;
+          }
+        } catch (e) {
+          console.warn('Resume payment: live price check skipped:', e);
+        }
+      }
+
+      const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
+      return { subtotal, deliveryFee, discountAmount, discountStillActive, grandTotal };
+    }
+
+    function resumeSummaryHTML(order, pricing) {
+      const originalTotal = Number(order.total_amount) || 0;
+      const totalChanged = Math.abs(pricing.grandTotal - originalTotal) > 0.005;
+
+      return `
+        <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--ink-soft); font-family:var(--font-mono);">
+          <span>Subtotal</span><span>${formatGHS(pricing.subtotal)}</span>
+        </div>
+        ${order.discount_code ? `
+          <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-family:var(--font-mono); margin-top:6px; color:${pricing.discountStillActive === false ? '#B3261E' : 'var(--palm)'};">
+            <span>Discount (${escapeHTML(order.discount_code)})${pricing.discountStillActive === false ? ' — no longer active' : ''}</span>
+            <span>${pricing.discountAmount > 0 ? '-' + formatGHS(pricing.discountAmount) : formatGHS(0)}</span>
+          </div>
+        ` : ''}
+        <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--ink-soft); font-family:var(--font-mono); margin-top:6px;">
+          <span>${order.fulfillment_type === 'collect' ? 'Collection' : 'Delivery'}</span>
+          <span>${pricing.deliveryFee === 0 ? 'Free' : formatGHS(pricing.deliveryFee)}</span>
+        </div>
+        <div class="bag-summary" style="margin-top:12px;">
+          <span>${totalChanged ? 'New total' : 'Total'}</span>
+          <span style="font-family:var(--font-display); font-size:1.6rem;">${formatGHS(pricing.grandTotal)}</span>
+        </div>
+        ${totalChanged ? `
+          <p style="font-size:0.82rem; color:var(--ink-soft); margin-top:6px; font-family:var(--font-mono);">
+            Was ${formatGHS(originalTotal)} when this order was placed.
+          </p>
+        ` : ''}
+      `;
+    }
+
+    // order: the merch_orders row. options.onConfirm(({ setStatus, button }))
+    // is called when the shopper clicks "Continue to payment" — it should
+    // carry out the actual payment (Paystack, verify-payment, etc.) and call
+    // showReceiptFromOrder() on success.
+    async function renderResumeConfirm(order, { onConfirm } = {}) {
+      modal.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+
+      stepsEl.innerHTML = `
+        <span class="route-tag blue">Resume payment</span>
+        <h3 style="margin-top:16px;">Let's confirm the price first.</h3>
+        <p style="margin-top:6px; color:var(--ink-soft); font-size:0.9rem;">Prices and discount codes can change between placing an order and paying for it. Here's where things stand right now.</p>
+        <div data-resume-summary style="margin-top:18px; color:var(--ink-soft); font-size:0.9rem;">Checking current prices…</div>
+        <p data-resume-status style="font-size:0.85rem; display:none; margin-top:10px;"></p>
+        <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-dark" data-resume-continue disabled>Continue to payment</button>
+          <button type="button" class="btn btn-outline" data-resume-cancel>Cancel</button>
+        </div>
+      `;
+
+      stepsEl.querySelector('[data-resume-cancel]')?.addEventListener('click', closeModal);
+
+      const pricing = await computeResumePricing(order);
+      const summaryEl = stepsEl.querySelector('[data-resume-summary]');
+      if (summaryEl) summaryEl.innerHTML = resumeSummaryHTML(order, pricing);
+
+      const continueBtn = stepsEl.querySelector('[data-resume-continue]');
+      if (!continueBtn) return;
+      continueBtn.disabled = false;
+
+      continueBtn.addEventListener('click', async () => {
+        const status = stepsEl.querySelector('[data-resume-status]');
+        const setStatus = (msg, isError) => {
+          if (!status) return;
+          status.textContent = msg;
+          status.style.display = 'block';
+          status.style.color = isError ? '#B3261E' : 'var(--palm)';
+        };
+        try {
+          await onConfirm?.({ setStatus, button: continueBtn });
+        } catch (e) {
+          console.error('Resume payment error:', e);
+          setStatus('Something went wrong. Please try again.', true);
+          continueBtn.disabled = false;
+          continueBtn.textContent = 'Continue to payment';
+        }
+      });
+    }
+
+    // Jumps the (shared, site-wide) checkout modal straight to the receipt
+    // step for an arbitrary order — used after a resumed payment succeeds,
+    // so the same download/screenshot UI works from order-history.html too.
+    function showReceiptFromOrder(order) {
+      modal.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+      lastOrder = order;
+      renderStep('receipt');
+    }
+
+    window.NxNxComponents.openResumeConfirm = renderResumeConfirm;
+    window.NxNxComponents.showReceiptFromOrder = showReceiptFromOrder;
 
     window.openCheckoutModal = openModal;
   }

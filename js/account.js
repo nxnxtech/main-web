@@ -196,6 +196,17 @@ async function initChangePasswordPage() {
 }
 
 // ---------- ORDER HISTORY PAGE ----------
+const COMPANY_EMAIL = 'nxnxtech@gmail.com';
+const COMPANY_WHATSAPP = '233209156811'; // +233 20 915 6811, no leading '+' for wa.me
+
+const ISSUE_TYPES = [
+  { value: 'payment_failed', label: "Payment didn't go through" },
+  { value: 'charged_no_confirmation', label: "I was charged but didn't get a confirmation" },
+  { value: 'wrong_items', label: 'Wrong or missing items' },
+  { value: 'delivery_issue', label: 'Delivery issue' },
+  { value: 'other', label: 'Other (describe below)' },
+];
+
 function orderStatusBadge(status) {
   const map = {
     paid: { label: 'Paid', bg: 'var(--marigold)', color: 'var(--ink)' },
@@ -207,6 +218,30 @@ function orderStatusBadge(status) {
   return `<span class="pill" style="background:${s.bg}; color:${s.color}; border-color:var(--ink);">${s.label}</span>`;
 }
 
+function issueReportFormHTML(order) {
+  return `
+    <div data-report-form style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--paper-2);">
+      <label class="checkout-label">What's the issue?</label>
+      <select data-issue-type class="checkout-input">
+        ${ISSUE_TYPES.map((t) => `<option value="${t.value}">${escapeHTMLAccount(t.label)}</option>`).join('')}
+      </select>
+      <div data-issue-custom-wrap style="display:none; margin-top:10px;">
+        <label class="checkout-label">Describe the issue</label>
+        <input type="text" data-issue-custom class="checkout-input" placeholder="Type your own issue…">
+      </div>
+      <div style="margin-top:10px;">
+        <label class="checkout-label">Anything else we should know?</label>
+        <textarea data-issue-explanation class="checkout-input" rows="3" placeholder="Explain what happened…"></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+        <button type="button" class="btn btn-dark" data-send-email>Email us</button>
+        <button type="button" class="btn btn-outline" data-send-whatsapp>WhatsApp us</button>
+      </div>
+      <p style="font-size:0.78rem; color:var(--ink-soft); margin-top:8px;">This opens your own email or WhatsApp app with the details filled in — nothing is sent automatically.</p>
+    </div>
+  `;
+}
+
 function orderCardHTML(order) {
   const items = order.items || [];
   const rows = items.map((item) => `
@@ -216,8 +251,10 @@ function orderCardHTML(order) {
     </div>
   `).join('');
 
+  const cartTotal = (Number(order.subtotal) || 0) - (Number(order.discount_total) || 0);
+
   return `
-    <div class="board-card" style="margin-bottom:20px;">
+    <div class="board-card" data-order-id="${escapeHTMLAccount(order.id)}" style="margin-bottom:20px;">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
         <div>
           <div style="font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-soft);">
@@ -228,13 +265,24 @@ function orderCardHTML(order) {
         ${orderStatusBadge(order.status)}
       </div>
       <div class="bag-rows" style="margin-top:16px;">${rows}</div>
+      <div style="font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-soft); margin-top:10px;">
+        <div style="display:flex; justify-content:space-between;"><span>Cart total</span><span>${formatGHSAccount(cartTotal)}</span></div>
+        ${order.discount_code_amount ? `<div style="display:flex; justify-content:space-between; color:var(--palm);"><span>Discount${order.discount_code ? ` (${escapeHTMLAccount(order.discount_code)})` : ''}</span><span>-${formatGHSAccount(order.discount_code_amount)}</span></div>` : ''}
+        ${order.delivery_fee != null ? `<div style="display:flex; justify-content:space-between;"><span>${order.fulfillment_type === 'collect' ? 'Collection' : 'Delivery'}</span><span>${Number(order.delivery_fee) === 0 ? 'Free' : formatGHSAccount(order.delivery_fee)}</span></div>` : ''}
+      </div>
       <div class="bag-summary">
         <span>Total</span>
         <span style="font-family:var(--font-display); font-size:1.4rem;">${formatGHSAccount(order.total_amount)}</span>
       </div>
       <div style="margin-top:10px; font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-soft);">
-        Delivering to: ${escapeHTMLAccount(order.town)}, ${escapeHTMLAccount(order.region)}
+        ${order.fulfillment_type === 'collect' ? 'Collecting in person' : `Delivering to: ${escapeHTMLAccount(order.town)}, ${escapeHTMLAccount(order.region)}`}
       </div>
+      <p data-order-status style="font-size:0.85rem; display:none; margin-top:10px;"></p>
+      <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+        ${order.status === 'pending' ? `<button type="button" class="btn btn-dark order-btn btn-sm" data-resume-payment>Resume payment</button>` : ''}
+        <button type="button" class="btn btn-outline btn-sm" data-toggle-report>Report an issue</button>
+      </div>
+      ${issueReportFormHTML(order)}
     </div>
   `;
 }
@@ -277,6 +325,157 @@ async function initOrderHistoryPage() {
     <h3 style="margin-top:16px; margin-bottom:24px;">Order history</h3>
     ${orders.map(orderCardHTML).join('')}
   `;
+
+  function findOrder(id) {
+    return orders.find((o) => o.id === id);
+  }
+
+  function setCardStatus(card, msg, isError) {
+    const status = card.querySelector('[data-order-status]');
+    if (!status) return;
+    status.textContent = msg;
+    status.style.display = 'block';
+    status.style.color = isError ? '#B3261E' : 'var(--palm)';
+  }
+
+  function buildIssueMessage(order, issueLabel, explanation) {
+    return [
+      `Order ID: ${order.id}`,
+      `Status: ${order.status}`,
+      `Total: ${formatGHSAccount(order.total_amount)}`,
+      `Paystack reference: ${order.paystack_reference || 'N/A'}`,
+      `Date: ${new Date(order.created_at).toLocaleString()}`,
+      '',
+      `Issue: ${issueLabel}`,
+      '',
+      'Details:',
+      explanation || '(no additional details provided)',
+    ].join('\n');
+  }
+
+  // ---------- resume payment ----------
+  // Clicking "Resume payment" no longer jumps straight into Paystack. It
+  // first opens the shared checkout modal on a confirmation step showing the
+  // current price (subtotal, whether the original discount code is still
+  // active, delivery fee, and grand total) so the shopper isn't surprised if
+  // anything changed since they placed the order. Only once they hit
+  // "Continue to payment" there do we actually create/resume the transaction.
+  container.querySelectorAll('[data-resume-payment]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('[data-order-id]');
+      const order = findOrder(card.dataset.orderId);
+      if (!order) return;
+
+      if (!window.NxNxComponents?.openResumeConfirm) {
+        setCardStatus(card, "Payment isn't available right now — please refresh and try again.", true);
+        return;
+      }
+
+      window.NxNxComponents.openResumeConfirm(order, {
+        onConfirm: async ({ setStatus, button }) => {
+          if (typeof PaystackPop === 'undefined') {
+            setStatus("Payment isn't available right now — please refresh and try again.", true);
+            button.disabled = false;
+            return;
+          }
+
+          button.disabled = true;
+          button.textContent = 'Preparing payment…';
+
+          const { data, error } = await window.supabaseClient.functions.invoke('resume-checkout', {
+            body: { order_id: order.id },
+          });
+
+          if (error || !data?.access_code) {
+            console.error('resume-checkout error:', error, data);
+            setStatus(data?.error || 'Could not resume payment. Please try again.', true);
+            button.disabled = false;
+            button.textContent = 'Continue to payment';
+            return;
+          }
+
+          button.textContent = 'Waiting for payment…';
+
+          const popup = new PaystackPop();
+          popup.resumeTransaction(data.access_code, {
+            onSuccess: async (transaction) => {
+              const { data: verifyData, error: verifyError } = await window.supabaseClient.functions.invoke('verify-payment', {
+                body: { reference: transaction.reference || data.reference },
+              });
+
+              if (verifyError || !verifyData?.order) {
+                setStatus('Payment received — confirming your order, please refresh in a moment.', false);
+                button.disabled = false;
+                button.textContent = 'Continue to payment';
+                return;
+              }
+
+              // Hand off to the receipt step so the shopper can download or
+              // screenshot it, then quietly refresh the order list behind it.
+              window.NxNxComponents.showReceiptFromOrder(verifyData.order);
+              initOrderHistoryPage();
+            },
+            onCancel: () => {
+              button.disabled = false;
+              button.textContent = 'Continue to payment';
+              setStatus('Payment cancelled.', true);
+            },
+            onError: (err) => {
+              console.error('Paystack error:', err);
+              button.disabled = false;
+              button.textContent = 'Continue to payment';
+              setStatus('Something went wrong with the payment. Please try again.', true);
+            },
+          });
+        },
+      });
+    });
+  });
+
+  // ---------- report an issue ----------
+  container.querySelectorAll('[data-toggle-report]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const form = btn.closest('[data-order-id]').querySelector('[data-report-form]');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+
+  container.querySelectorAll('[data-issue-type]').forEach((select) => {
+    select.addEventListener('change', () => {
+      const wrap = select.closest('[data-report-form]').querySelector('[data-issue-custom-wrap]');
+      wrap.style.display = select.value === 'other' ? 'block' : 'none';
+    });
+  });
+
+  function collectIssueDetails(card) {
+    const order = findOrder(card.dataset.orderId);
+    const form = card.querySelector('[data-report-form]');
+    const typeValue = form.querySelector('[data-issue-type]').value;
+    const typeMeta = ISSUE_TYPES.find((t) => t.value === typeValue);
+    const custom = form.querySelector('[data-issue-custom]')?.value.trim();
+    const explanation = form.querySelector('[data-issue-explanation]').value.trim();
+    const issueLabel = typeValue === 'other' && custom ? custom : (typeMeta ? typeMeta.label : 'Other');
+    return { order, issueLabel, explanation };
+  }
+
+  container.querySelectorAll('[data-send-email]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('[data-order-id]');
+      const { order, issueLabel, explanation } = collectIssueDetails(card);
+      const subject = `Order issue — ${order.id.slice(0, 8)} (${issueLabel})`;
+      const bodyText = buildIssueMessage(order, issueLabel, explanation);
+      window.location.href = `mailto:${COMPANY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+    });
+  });
+
+  container.querySelectorAll('[data-send-whatsapp]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('[data-order-id]');
+      const { order, issueLabel, explanation } = collectIssueDetails(card);
+      const text = `Order issue — ${order.id.slice(0, 8)} (${issueLabel})\n\n${buildIssueMessage(order, issueLabel, explanation)}`;
+      window.open(`https://wa.me/${COMPANY_WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank');
+    });
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
