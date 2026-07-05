@@ -121,6 +121,7 @@
     let lastOrder = null;
     let fulfillmentType = details.fulfillment_type || 'delivery'; // 'delivery' | 'collect'
     let appliedDiscount = null; // { code, percent, appliesTo, discountAmount }
+    let isGuest = false; // true once someone explicitly chooses to check out without an account
 
     function openModal(step) {
       modal.classList.add('is-open');
@@ -153,6 +154,8 @@
     function renderStep(step) {
       if (step === 'bag') return renderBag();
       if (step === 'auth') return renderAuth();
+      if (step === 'guest-warning') return renderGuestWarning();
+      if (step === 'guest-contact') return renderGuestContact();
       if (step === 'details') return renderDetails();
       if (step === 'review') return renderReview();
       if (step === 'receipt') return renderReceipt();
@@ -238,6 +241,8 @@
 
     // ---------- STEP: AUTH ----------
     function renderAuth() {
+      isGuest = false; // arriving here (fresh, or "back") always means "not guest" until they say otherwise
+
       stepsEl.innerHTML = `
         <span class="route-tag blue">Sign in to check out</span>
         <h3 style="margin-top:16px;">${authMode === 'signin' ? 'Welcome back.' : 'Create an account.'}</h3>
@@ -272,12 +277,14 @@
           <p data-auth-status style="font-size:0.85rem; display:none;"></p>
           <button type="submit" class="btn btn-dark" style="justify-self:start;">${authMode === 'signin' ? 'Sign in' : 'Sign up'}</button>
         </form>
+        <button type="button" class="checkout-guest-link" data-continue-guest style="margin-top:16px; background:none; border:none; padding:0; text-decoration:underline; cursor:pointer; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">Continue as guest →</button>
         <button type="button" class="checkout-back" data-back-to-bag>← Back to bag</button>
       `;
 
       stepsEl.querySelectorAll('[data-auth-tab]').forEach((tab) => {
         tab.addEventListener('click', () => { authMode = tab.dataset.authTab; renderAuth(); });
       });
+      stepsEl.querySelector('[data-continue-guest]')?.addEventListener('click', () => renderStep('guest-warning'));
       stepsEl.querySelector('[data-back-to-bag]')?.addEventListener('click', () => renderStep('bag'));
 
       stepsEl.querySelector('[data-auth-form]')?.addEventListener('submit', async (e) => {
@@ -353,6 +360,76 @@
       });
     }
 
+    // ---------- STEP: GUEST WARNING ----------
+    // Shown before letting someone skip account creation, so the trade-off is
+    // explicit rather than a dark pattern buried in fine print.
+    function renderGuestWarning() {
+      stepsEl.innerHTML = `
+        <span class="route-tag blue">Continue as guest</span>
+        <h3 style="margin-top:16px;">Before you skip creating an account…</h3>
+        <p style="margin-top:8px; color:var(--ink-soft); font-size:0.95rem;">Here's what an account gets you that a one-off guest order won't:</p>
+        <ul style="margin-top:16px; padding-left:0; list-style:none; display:grid; gap:12px; font-size:0.92rem;">
+          <li style="display:flex; gap:10px;"><span>🏷️</span><span><strong>Member-only discounts</strong> — some codes and early sale access are only ever sent to account holders.</span></li>
+          <li style="display:flex; gap:10px;"><span>📦</span><span><strong>Order history &amp; resume payment</strong> — come back and finish a payment, or look up a past order, any time.</span></li>
+          <li style="display:flex; gap:10px;"><span>⚡</span><span><strong>Faster checkout next time</strong> — your delivery details are saved, so you won't retype them.</span></li>
+          <li style="display:flex; gap:10px;"><span>🛟</span><span><strong>Easier support</strong> — we can pull up your order instantly if something needs fixing.</span></li>
+        </ul>
+        <p style="margin-top:16px; color:var(--ink-soft); font-size:0.9rem;">As a guest, your receipt is the only record of this order — make sure to download or screenshot it.</p>
+        <div style="margin-top:22px; display:flex; gap:12px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-dark" data-guest-create-account>Create a free account</button>
+          <button type="button" class="btn btn-outline" data-guest-continue>Continue as guest</button>
+        </div>
+        <button type="button" class="checkout-back" data-back-to-auth>← Back</button>
+      `;
+
+      stepsEl.querySelector('[data-guest-create-account]')?.addEventListener('click', () => {
+        authMode = 'signup';
+        renderStep('auth');
+      });
+      stepsEl.querySelector('[data-guest-continue]')?.addEventListener('click', () => renderStep('guest-contact'));
+      stepsEl.querySelector('[data-back-to-auth]')?.addEventListener('click', () => renderStep('auth'));
+    }
+
+    // ---------- STEP: GUEST CONTACT ----------
+    // Guests have no auth email on file, so we collect one here purely to
+    // send/confirm the order — it's carried through in `details.email`.
+    function renderGuestContact() {
+      stepsEl.innerHTML = `
+        <span class="route-tag blue">Continue as guest</span>
+        <h3 style="margin-top:16px;">Where should we send your receipt?</h3>
+        <p style="margin-top:8px; color:var(--ink-soft); font-size:0.95rem;">We'll only use this to confirm your order — no account, no saved history.</p>
+        <form data-guest-contact-form style="margin-top:20px; display:grid; gap:14px;">
+          <div>
+            <label class="checkout-label">Email *</label>
+            <input type="email" name="email" required class="checkout-input" placeholder="e.g., you@email.com" value="${escapeHTML(details.email || '')}">
+          </div>
+          <p data-guest-contact-status style="font-size:0.85rem; display:none; color:#B3261E;"></p>
+          <button type="submit" class="btn btn-dark" style="justify-self:start;">Continue →</button>
+        </form>
+        <button type="button" class="checkout-back" data-back-to-guest-warning>← Back</button>
+      `;
+
+      stepsEl.querySelector('[data-back-to-guest-warning]')?.addEventListener('click', () => renderStep('guest-warning'));
+
+      stepsEl.querySelector('[data-guest-contact-form]')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const email = form.email.value.trim();
+        const status = form.querySelector('[data-guest-contact-status]');
+
+        if (!email) {
+          status.textContent = 'Please enter an email address.';
+          status.style.display = 'block';
+          return;
+        }
+
+        isGuest = true;
+        details = { ...details, email };
+        setJSONCookie('nxnx_checkout_details', details, 30);
+        renderStep('details');
+      });
+    }
+
     // ---------- STEP: DETAILS ----------
     async function renderDetails() {
       const { data: userData } = await window.supabaseClient.auth.getUser();
@@ -371,7 +448,7 @@
       const d = { ...profile, ...details };
 
       stepsEl.innerHTML = `
-        <span class="route-tag blue">Delivery details</span>
+        <span class="route-tag blue">${isGuest ? 'Guest checkout — delivery details' : 'Delivery details'}</span>
         <h3 style="margin-top:16px;" data-delivery-heading>Where should this go?</h3>
 
         <div class="auth-tabs" style="margin-top:16px;">
@@ -501,6 +578,7 @@
         e.preventDefault();
         const form = e.target;
         details = {
+          email: details.email || '', // set during the guest-contact step; not shown/edited on this form
           full_name: form.full_name.value.trim(),
           phone: form.phone.value.trim(),
           region: fulfillmentType === 'collect' ? '' : form.region.value,
@@ -582,11 +660,12 @@
       }
 
       stepsEl.innerHTML = `
-        <span class="route-tag blue">Review &amp; pay</span>
+        <span class="route-tag blue">${isGuest ? 'Review & pay — guest checkout' : 'Review & pay'}</span>
         <h3 style="margin-top:16px;">Ready when you are.</h3>
         <div class="bag-rows">${rows}</div>
         <div style="margin-top:16px; padding-top:16px; border-top:2px solid var(--ink); font-family:var(--font-mono); font-size:0.9rem; color:var(--ink-soft);">
           <div>${escapeHTML(details.full_name || '')} · ${escapeHTML(details.phone || '')}</div>
+          ${isGuest ? `<div style="margin-top:4px;">${escapeHTML(details.email || '')}</div>` : ''}
           ${details.is_gift ? `
             <div style="margin-top:8px; color:var(--ink);">🎁 Gift for ${escapeHTML(details.recipient_name || '')} · ${escapeHTML(details.recipient_phone || '')}</div>
             ${details.gift_message ? `<div style="font-style:italic; margin-top:4px;">“${escapeHTML(details.gift_message)}”</div>` : ''}
@@ -677,6 +756,12 @@
           gift_message: details.gift_message || null,
           fulfillment_type: fulfillmentType,
           discount_code: appliedDiscount ? appliedDiscount.code : null,
+          // Guest checkout: no Supabase session, so there's no user_id to key
+          // the order off of. The 'create-checkout' function needs to accept
+          // being called without auth in this case and store guest_email on
+          // the order instead of a user_id (see note in project reply).
+          is_guest: isGuest,
+          guest_email: isGuest ? (details.email || null) : null,
         };
 
         const { data, error } = await window.supabaseClient.functions.invoke('create-checkout', { body: payload });
