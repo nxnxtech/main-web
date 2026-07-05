@@ -603,6 +603,10 @@ section.tight{ padding: 60px 0; }
 }
 
 /* ===== Merch Grid + Cards (minimalist) ===== */
+.merch-banner{
+  display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; padding:12px 20px; text-align:center; margin-bottom: 10px; margin-top: -50px;
+}
+
 .merch-grid{
   display:grid;
   grid-template-columns: repeat(4, 1fr);
@@ -643,6 +647,14 @@ section.tight{ padding: 60px 0; }
 .merch-badge-discount{ left:10px; background:var(--marigold); color:var(--ink); }
 .merch-badge-low{ right:10px; background:var(--paper); color:var(--ink); }
 .merch-badge-soldout{ left:10px; background:var(--ink); color:var(--paper); }
+
+@media (max-width: 900px){
+  .merch-banner{ 
+    margin-top: 0px;
+    text-align: start;
+    margin-top: -30px;
+  }
+}
 
 @media (max-width: 900px){
   .merch-grid, .merch-grid-teaser{ grid-template-columns: repeat(1, 1fr); }
@@ -716,6 +728,7 @@ section.tight{ padding: 60px 0; }
 .product-size-btn{
   padding:8px 14px; border:1.5px solid var(--ink); border-radius:6px; background:var(--paper);
   font-family:var(--font-mono); font-size:0.82rem; cursor:pointer;
+  color: var(--ink);
 }
 .product-size-btn.is-selected{ background:var(--ink); color:var(--paper); }
 .product-size-btn.is-disabled,

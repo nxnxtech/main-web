@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delivery areas & free delivery — NxNx Tech</title>
+<meta name="description" content="See every area we deliver to and how much you need to spend for free or discounted delivery.">
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="icon" href="../images/simple-logo.png" type="image/png">
+</head>
+<body data-page-name="Delivery">
+
+<div data-component="header"></div>
+
+<!-- HEADER -->
+<section style="padding-top:70px; padding-bottom:40px;">
+  <div class="wrap">
+    <span class="route-tag">Delivery</span>
+    <h1 style="margin-top:20px;">Free delivery, by location.</h1>
+    <p class="lede" style="margin-top:20px;">Delivery fees — and what you need to spend for free or half-price delivery — vary by area. Find your region and town below.</p>
+  </div>
+</section>
+
+<div class="wrap"><div class="road-rule"></div></div>
+
+<!-- DELIVERY ZONES -->
+<section class="reveal">
+  <div class="wrap" style="max-width:760px;">
+    <form data-delivery-search-form style="display:flex; gap:10px; margin-bottom:8px;">
+      <input
+        type="text"
+        name="q"
+        data-delivery-search-input
+        placeholder="Search for your region or town…"
+        class="checkout-input"
+        style="flex:1;"
+        autocomplete="off"
+      >
+      <button type="submit" class="btn btn-dark" aria-label="Search">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="M14 14 L18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </form>
+    <p data-delivery-search-status style="font-size:0.85rem; color:var(--ink-soft); display:none; margin-bottom:16px;"></p>
+    <div id="delivery-zones-table" data-delivery-zones-table>
+      <!-- Loaded from Supabase -->
+    </div>
+    <p style="margin-top:36px; color:var(--ink-soft); font-size:0.9rem;">Don't see your area listed? You can still <a href="merch.html" style="text-decoration:underline;">collect your order in person</a> at no extra cost.</p>
+  </div>
+</section>
+
+<div data-component="business-card"></div>
+<div data-component="product-modal"></div>
+<div data-component="checkout-modal"></div>
+
+<div data-component="footer"></div>
+
+<script src="../js/cookies.js"></script>
+<script src="../js/cart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+<script src="https://js.paystack.co/v2/inline.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="../components/header.js"></script>
+<script src="../components/footer.js"></script>
+<script src="../components/business-card.js"></script>
+<script src="../components/product-modal.js"></script>
+<script src="../components/checkout-modal.js"></script>
+<script src="../components/cart-bag.js"></script>
+<script src="../components/profile-menu.js"></script>
+<script src="../components/loading.js"></script>
+<script src="../js/components.js"></script>
+<script src="../components/delivery-info.js"></script>
+<script src="../js/main.js"></script>
+</body>
+</html>

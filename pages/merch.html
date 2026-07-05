@@ -12,9 +12,19 @@
 
 <div data-component="header"></div>
 
+<!-- FREE DELIVERY BANNER -->
+<div style="background:var(--ink); color:var(--paper);">
+  <div class="wrap merch-banner" style="margin-top: 0px; margin-bottom: -40px;">
+    <span style="font-family:var(--font-mono); font-size:0.82rem; letter-spacing:0.01em; align-items:end;">
+      🚚 Spend <strong data-free-delivery-threshold style="color:var(--marigold);">GH₵—</strong>+ and get <strong>FREE delivery</strong> in eligible areas.
+    </span>
+    <a href="delivery-info.html" style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--paper); border:1.5px solid var(--paper); border-radius:999px; padding:5px 12px; text-decoration:none; opacity:0.9; white-space:nowrap;">ⓘ See locations</a>
+  </div>
+</div>
+
 <!-- HEADER -->
 <section style="padding-top:70px; padding-bottom:40px;">
-  <div class="wrap">
+  <div class="wrap merch-card-section">
     <span class="route-tag">Merch</span>
     <h1 style="margin-top:20px;">Wear the talent.</h1>
     <p class="lede" style="margin-top:20px;">Shirts, caps and a few other things carrying the NxNx signal-lime. Limited runs — once it's gone, it's gone.</p>
@@ -42,6 +52,7 @@
 <script src="../js/cart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase-config.js"></script>
+<script src="../js/free-delivery-banner.js"></script>
 <script src="https://js.paystack.co/v2/inline.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="../components/header.js"></script>

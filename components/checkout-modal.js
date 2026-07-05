@@ -1,12 +1,6 @@
 (function () {
   window.NxNxComponents = window.NxNxComponents || {};
 
-  const GHANA_REGIONS = [
-    'Greater Accra', 'Ashanti', 'Western', 'Western North', 'Central',
-    'Eastern', 'Volta', 'Oti', 'Northern', 'Savannah', 'North East',
-    'Upper East', 'Upper West', 'Bono', 'Bono East', 'Ahafo',
-  ];
-
   window.NxNxComponents.checkoutModal = `
     <div class="checkout-modal" data-checkout-modal>
       <div class="checkout-backdrop" data-checkout-backdrop></div>
@@ -51,13 +45,64 @@
     return deliverySettingsCache;
   }
 
-  function computeDeliveryFee(subtotal, fulfillmentType, settings) {
-    if (fulfillmentType === 'collect' || !settings) return 0;
-    if (subtotal >= Number(settings.free_threshold)) return 0;
-    if (subtotal >= Number(settings.half_off_threshold)) {
-      return Number(settings.base_fee) * (1 - Number(settings.half_off_percent) / 100);
+  function computeDeliveryFee(cartTotal, fulfillmentType, zoneFee, settings) {
+    if (fulfillmentType === 'collect') return 0;
+    const fee = Number(zoneFee) || 0;
+    if (!settings) return fee;
+    if (cartTotal >= Number(settings.free_threshold)) return 0;
+    if (cartTotal >= Number(settings.half_off_threshold)) {
+      return Math.round(fee * (1 - Number(settings.half_off_percent) / 100) * 100) / 100;
     }
-    return Number(settings.base_fee);
+    return fee;
+  }
+
+  // ---------- DELIVERY ZONES (from public.delivery_zones) ----------
+  // Regions/towns we actually deliver to, and what each one costs, all
+  // admin-managed in the DB rather than hardcoded here.
+  let deliveryZonesCache = null; // { regions: string[], byRegion: { [region]: [{id, region, town, fee}] } }
+
+  async function getDeliveryZones() {
+    if (deliveryZonesCache) return deliveryZonesCache;
+
+    const { data, error } = await window.supabaseClient
+      .from('delivery_zones')
+      .select('id, region, town, fee, free_threshold, half_off_threshold, half_off_percent')
+      .eq('is_active', true)
+      .order('region', { ascending: true })
+      .order('display_order', { ascending: true });
+
+    if (error || !data) {
+      console.error('Error loading delivery zones:', error);
+      deliveryZonesCache = { regions: [], byRegion: {} };
+      return deliveryZonesCache;
+    }
+
+    const byRegion = {};
+    data.forEach((zone) => {
+      if (!byRegion[zone.region]) byRegion[zone.region] = [];
+      byRegion[zone.region].push(zone);
+    });
+
+    deliveryZonesCache = { regions: Object.keys(byRegion), byRegion };
+    return deliveryZonesCache;
+  }
+
+  function findZone(zones, region, town) {
+    const list = zones.byRegion[region] || [];
+    return list.find((z) => z.town === town) || null;
+  }
+
+  // A zone can override any/all of the global thresholds (e.g. a far,
+  // expensive zone shouldn't need the same GHs 500 cart as a cheap one to
+  // get free/half-off delivery). Anything the zone doesn't set falls back
+  // to the global delivery_settings row.
+  function effectiveDeliverySettings(zone, globalSettings) {
+    if (!zone) return globalSettings;
+    return {
+      free_threshold: zone.free_threshold ?? globalSettings?.free_threshold,
+      half_off_threshold: zone.half_off_threshold ?? globalSettings?.half_off_threshold,
+      half_off_percent: zone.half_off_percent ?? globalSettings?.half_off_percent,
+    };
   }
 
   // ---------- DISCOUNT CODES (from public.discount_codes / discount_code_products) ----------
@@ -446,6 +491,19 @@
       }
 
       const d = { ...profile, ...details };
+      const zones = await getDeliveryZones();
+      // If our previously-saved region isn't (or is no longer) deliverable,
+      // don't pre-select a dead end.
+      const initialRegion = zones.byRegion[d.region] ? d.region : '';
+      const initialTown = initialRegion && findZone(zones, initialRegion, d.town) ? d.town : '';
+
+      function townOptionsHTML(region, selectedTown) {
+        const list = zones.byRegion[region] || [];
+        if (!list.length) return `<option value="">${region ? 'No delivery areas set up in this region' : 'Select a region first…'}</option>`;
+        return [`<option value="">Select…</option>`]
+          .concat(list.map((z) => `<option value="${escapeHTML(z.town)}" ${z.town === selectedTown ? 'selected' : ''}>${escapeHTML(z.town)} — ${formatGHS(Number(z.fee))}</option>`))
+          .join('');
+      }
 
       stepsEl.innerHTML = `
         <span class="route-tag blue">${isGuest ? 'Guest checkout — delivery details' : 'Delivery details'}</span>
@@ -463,7 +521,7 @@
           </div>
           <div>
             <label class="checkout-label">Your phone number *</label>
-            <input type="tel" placeholder="e.g., 020XXXXX11" name="phone" required class="checkout-input" value="${escapeHTML(d.phone || '')}">
+            <input type="tel" placeholder="e.g., 020XXXXX11" name="phone" required minlength="10" inputmode="numeric" class="checkout-input" value="${escapeHTML(d.phone || '')}">
           </div>
 
           <label class="gift-toggle">
@@ -478,7 +536,7 @@
             </div>
             <div>
               <label class="checkout-label">Recipient's phone number *</label>
-              <input type="tel" placeholder="e.g., 054XXXXX98" name="recipient_phone" class="checkout-input" value="${escapeHTML(d.recipient_phone || '')}">
+              <input type="tel" placeholder="e.g., 054XXXXX98" name="recipient_phone" minlength="10" inputmode="numeric" class="checkout-input" value="${escapeHTML(d.recipient_phone || '')}">
             </div>
             <div>
               <label class="checkout-label">Gift message (optional)</label>
@@ -492,14 +550,19 @@
                 <label class="checkout-label" data-region-label>Region *</label>
                 <select name="region" ${fulfillmentType === 'collect' ? '' : 'required'} class="checkout-input">
                   <option value="">Select…</option>
-                  ${GHANA_REGIONS.map((r) => `<option value="${r}" ${d.region === r ? 'selected' : ''}>${r}</option>`).join('')}
+                  ${zones.regions.map((r) => `<option value="${escapeHTML(r)}" ${initialRegion === r ? 'selected' : ''}>${escapeHTML(r)}</option>`).join('')}
                 </select>
               </div>
               <div>
                 <label class="checkout-label" data-town-label>Town *</label>
-                <input type="text" name="town" ${fulfillmentType === 'collect' ? '' : 'required'} class="checkout-input" value="${escapeHTML(d.town || '')}">
+                <select name="town" ${fulfillmentType === 'collect' ? '' : 'required'} class="checkout-input">
+                  ${townOptionsHTML(initialRegion, initialTown)}
+                </select>
               </div>
             </div>
+            <p data-zone-status style="font-size:0.82rem; color:var(--ink-soft); display:${zones.regions.length ? 'none' : 'block'};">
+              We couldn't load delivery areas — please refresh, or use Collect in person below.
+            </p>
             <div>
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <label class="checkout-label" data-gps-label>GPS address</label>
@@ -569,6 +632,10 @@
       syncGiftUI(giftToggle.checked);
       giftToggle.addEventListener('change', () => syncGiftUI(giftToggle.checked));
 
+      regionInput?.addEventListener('change', () => {
+        townInput.innerHTML = townOptionsHTML(regionInput.value, '');
+      });
+
       stepsEl.querySelectorAll('[data-fulfillment-tab]').forEach((tab) => {
         tab.addEventListener('click', () => {
           fulfillmentType = tab.dataset.fulfillmentTab;
@@ -581,6 +648,58 @@
       stepsEl.querySelector('[data-details-form]')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
+
+        function countDigits(value) {
+          return (value || '').replace(/\D/g, '').length;
+        }
+
+        function validatePhoneField(field, label, isRequired = true) {
+          if (!field) return true;
+          const value = field.value.trim();
+          if (!isRequired && !value) {
+            field.setCustomValidity('');
+            return true;
+          }
+          if (!value) {
+            field.setCustomValidity(`${label} is required.`);
+            return false;
+          }
+          if (countDigits(value) < 10) {
+            field.setCustomValidity(`${label} must contain at least 10 digits.`);
+            return false;
+          }
+          field.setCustomValidity('');
+          return true;
+        }
+
+        const phoneInput = form.querySelector('[name="phone"]');
+        const recipientPhoneInput = form.querySelector('[name="recipient_phone"]');
+
+        if (!validatePhoneField(phoneInput, 'Phone number', true)) {
+          phoneInput?.focus();
+          form.reportValidity();
+          return;
+        }
+
+        if (form.is_gift.checked && !validatePhoneField(recipientPhoneInput, "Recipient's phone number", true)) {
+          recipientPhoneInput?.focus();
+          form.reportValidity();
+          return;
+        }
+
+        if (fulfillmentType === 'delivery') {
+          const zones = await getDeliveryZones();
+          if (!findZone(zones, form.region.value, form.town.value)) {
+            const status = stepsEl.querySelector('[data-zone-status]');
+            if (status) {
+              status.textContent = 'Please choose a region and town we actually deliver to, or switch to Collect in person.';
+              status.style.display = 'block';
+              status.style.color = '#B3261E';
+            }
+            return;
+          }
+        }
+
         details = {
           email: details.email || '', // set during the guest-contact step; not shown/edited on this form
           full_name: form.full_name.value.trim(),
@@ -617,9 +736,14 @@
       const items = getCart();
       const subtotal = cartTotal();
       const settings = await getDeliverySettings();
+      const zones = await getDeliveryZones();
+      const zone = fulfillmentType === 'collect' ? null : findZone(zones, details.region, details.town);
+      const zoneFee = zone ? Number(zone.fee) : 0;
+      const zoneMissing = fulfillmentType === 'delivery' && !zone;
+      const effSettings = effectiveDeliverySettings(zone, settings);
 
       function currentDeliveryFee() {
-        return computeDeliveryFee(subtotal, fulfillmentType, settings);
+        return computeDeliveryFee(subtotal, fulfillmentType, zoneFee, effSettings);
       }
 
       function currentDiscountAmount() {
@@ -693,8 +817,12 @@
 
         <div data-summary style="margin-top:16px;">${summaryHTML()}</div>
 
+        ${zoneMissing ? `
+          <p style="font-size:0.85rem; margin-top:10px; color:#B3261E;">This delivery area isn't available anymore — please go back and pick another, or collect in person.</p>
+        ` : ''}
+
         <p data-review-status style="font-size:0.85rem; display:none; margin-top:10px;"></p>
-        <button type="button" class="btn btn-dark" style="margin-top:20px; width:100%; justify-content:center;" data-make-payment>Make payment</button>
+        <button type="button" class="btn btn-dark" style="margin-top:20px; width:100%; justify-content:center;" data-make-payment ${zoneMissing ? 'disabled' : ''}>Make payment</button>
         <button type="button" class="checkout-back" data-back-to-details>← Edit details</button>
       `;
 
@@ -1128,7 +1256,14 @@
     // reasonably can and let the shopper confirm before charging them.
     async function computeResumePricing(order) {
       const settings = await getDeliverySettings();
-      const deliveryFee = computeDeliveryFee(Number(order.subtotal) || 0, order.fulfillment_type, settings);
+      const zones = await getDeliveryZones();
+      const zone = order.fulfillment_type === 'collect' ? null : findZone(zones, order.region, order.town);
+      // If the zone was removed/renamed since the order was placed, fall back
+      // to what was actually charged rather than guessing at a new fee.
+      const zoneFee = zone ? Number(zone.fee) : Number(order.delivery_fee) || 0;
+      const deliveryFee = zone
+        ? computeDeliveryFee(Number(order.subtotal) || 0, order.fulfillment_type, zoneFee, effectiveDeliverySettings(zone, settings))
+        : zoneFee;
 
       let discountStillActive = null; // null = no code on this order / unknown
       let discountAmount = Number(order.discount_code_amount ?? order.discount_total ?? 0);
