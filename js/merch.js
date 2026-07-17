@@ -42,7 +42,7 @@ function merchCardHTML(product) {
         <div class="merch-card-price">
           ${isRange ? `From GH₵ ${discountedMin.toFixed(2)}` : `GH₵ ${discountedMin.toFixed(2)}`}
         </div>
-        ${product.discount_percent ? `<span class="merch-card-original merch-card-price" style="font-size: 0.7rem;">${isRange ? `GH₵ ${min.toFixed(2)}–${max.toFixed(2)}` : `GH₵ ${min.toFixed(2)}`}</span>` : ''}
+        ${product.discount_percent ? `<span class="merch-card-original merch-card-price" style="font-size: 0.7rem;">${isRange ? `GH₵ ${min.toFixed(2)}-${max.toFixed(2)}` : `GH₵ ${min.toFixed(2)}`}</span>` : ''}
       </div>
     </div>
   `;
@@ -53,7 +53,7 @@ function loadMerchInto(grid, options) {
   const opts = options || {};
 
   if (!window.supabaseClient) {
-    console.error('Supabase client not found — check that supabase-config.js is loaded before merch.js.');
+    console.error('Supabase client not found - check that supabase-config.js is loaded before merch.js.');
     return;
   }
 
@@ -76,7 +76,7 @@ function loadMerchInto(grid, options) {
 
     const products = data || [];
     if (!products.length) {
-      grid.innerHTML = `<p style="grid-column:1 / -1; color:var(--ink-soft);">New merch is on the way — check back soon.</p>`;
+      grid.innerHTML = `<p style="grid-column:1 / -1; color:var(--ink-soft);">New merch is on the way - check back soon.</p>`;
       return;
     }
 
@@ -112,7 +112,7 @@ function initMerchCarouselControls(grid) {
 
   function updateArrowVisibility() {
     const maxScroll = grid.scrollWidth - grid.clientWidth;
-    const scrollable = maxScroll > 1; // nothing to scroll — e.g. content fits on screen
+    const scrollable = maxScroll > 1; // nothing to scroll - e.g. content fits on screen
     const atStart = grid.scrollLeft <= 1;
     const atEnd = grid.scrollLeft >= maxScroll - 1;
 

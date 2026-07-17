@@ -6,11 +6,11 @@
   --ink-soft:   #4A4C42;
   --paper:      #FFFFFF;
   --paper-2:    #F6FBE3;   /* faint lime tint for card surfaces */
-  --marigold:   #C2F231;   /* signal lime — primary accent */
+  --marigold:   #C2F231;   /* signal lime - primary accent */
   --marigold-2: #A6D620;   /* darker lime for hover states */
   --route-red:  #0E0F0A;
   --yellow:  #ffd000;
-  --red: #ff0000;  /* mapped to ink — kept as a variable for compatibility */
+  --red: #ff0000;  /* mapped to ink - kept as a variable for compatibility */
   --palm:       #0E0F0A;
   --palm-dark:  #0E0F0A;
   --sign-blue:  #0E0F0A;

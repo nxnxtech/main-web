@@ -1,4 +1,4 @@
-// Account pages — profile.html, change-password.html, order-history.html all
+// Account pages - profile.html, change-password.html, order-history.html all
 // load this file. Each page has its own container id; whichever one exists on
 // the current page gets initialized. All three require a signed-in session.
 
@@ -150,16 +150,45 @@ async function initChangePasswordPage() {
     <form data-password-form style="margin-top:24px; display:grid; gap:16px; max-width:420px;">
       <div>
         <label class="checkout-label">New password</label>
-        <input type="password" name="password" required minlength="6" class="checkout-input">
+        <div style="position:relative;">
+          <input type="password" name="password" required minlength="6" class="checkout-input" style="padding-right:44px;">
+          <button type="button" data-password-toggle="password" aria-label="Show password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; color:var(--ink-soft); padding:0; display:flex; align-items:center; justify-content:center;">
+            <svg data-password-show-icon viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg data-password-hide-icon viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18"></path><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"></path><path d="M9.3 5.1A10.9 10.9 0 0 1 12 5c6.2 0 10 7 10 7a17.8 17.8 0 0 1-3.8 4.6"></path><path d="M6.2 6.2A17.9 17.9 0 0 0 2 12s3.5 7 10 7c1.4 0 2.7-.2 3.9-.6"></path></svg>
+          </button>
+        </div>
       </div>
       <div>
         <label class="checkout-label">Confirm new password</label>
-        <input type="password" name="confirm" required minlength="6" class="checkout-input">
+        <div style="position:relative;">
+          <input type="password" name="confirm" required minlength="6" class="checkout-input" style="padding-right:44px;">
+          <button type="button" data-password-toggle="confirm" aria-label="Show password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; color:var(--ink-soft); padding:0; display:flex; align-items:center; justify-content:center;">
+            <svg data-password-show-icon viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg data-password-hide-icon viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18"></path><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"></path><path d="M9.3 5.1A10.9 10.9 0 0 1 12 5c6.2 0 10 7 10 7a17.8 17.8 0 0 1-3.8 4.6"></path><path d="M6.2 6.2A17.9 17.9 0 0 0 2 12s3.5 7 10 7c1.4 0 2.7-.6"></path></svg>
+          </button>
+        </div>
       </div>
       <p data-password-status style="font-size:0.85rem; display:none;"></p>
       <button type="submit" class="btn btn-dark" style="justify-self:start;">Update password</button>
     </form>
   `;
+
+  container.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
+    const targetName = toggle.dataset.passwordToggle;
+    const input = container.querySelector(`[name="${targetName}"]`);
+    if (!input) return;
+    const showIcon = toggle.querySelector('[data-password-show-icon]');
+    const hideIcon = toggle.querySelector('[data-password-hide-icon]');
+    toggle.addEventListener('click', () => {
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+      if (showIcon && hideIcon) {
+        showIcon.style.display = isPassword ? 'none' : 'block';
+        hideIcon.style.display = isPassword ? 'block' : 'none';
+      }
+    });
+  });
 
   container.querySelector('[data-password-form]')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -239,7 +268,7 @@ function issueReportFormHTML(order) {
         <button type="button" class="btn btn-dark" data-send-email>Email us</button>
         <button type="button" class="btn btn-outline" data-send-whatsapp>WhatsApp us</button>
       </div>
-      <p style="font-size:0.78rem; color:var(--ink-soft); margin-top:8px;">This opens your own email or WhatsApp app with the details filled in — nothing is sent automatically.</p>
+      <p style="font-size:0.78rem; color:var(--ink-soft); margin-top:8px;">This opens your own email or WhatsApp app with the details filled in - nothing is sent automatically.</p>
     </div>
   `;
 }
@@ -369,14 +398,14 @@ async function initOrderHistoryPage() {
       if (!order) return;
 
       if (!window.NxNxComponents?.openResumeConfirm) {
-        setCardStatus(card, "Payment isn't available right now — please refresh and try again.", true);
+        setCardStatus(card, "Payment isn't available right now - please refresh and try again.", true);
         return;
       }
 
       window.NxNxComponents.openResumeConfirm(order, {
         onConfirm: async ({ setStatus, button }) => {
           if (typeof PaystackPop === 'undefined') {
-            setStatus("Payment isn't available right now — please refresh and try again.", true);
+            setStatus("Payment isn't available right now - please refresh and try again.", true);
             button.disabled = false;
             return;
           }
@@ -406,7 +435,7 @@ async function initOrderHistoryPage() {
               });
 
               if (verifyError || !verifyData?.order) {
-                setStatus('Payment received — confirming your order, please refresh in a moment.', false);
+                setStatus('Payment received - confirming your order, please refresh in a moment.', false);
                 button.disabled = false;
                 button.textContent = 'Continue to payment';
                 return;
@@ -464,7 +493,7 @@ async function initOrderHistoryPage() {
     btn.addEventListener('click', () => {
       const card = btn.closest('[data-order-id]');
       const { order, issueLabel, explanation } = collectIssueDetails(card);
-      const subject = `Order issue — ${order.id.slice(0, 8)} (${issueLabel})`;
+      const subject = `Order issue - ${order.id.slice(0, 8)} (${issueLabel})`;
       const bodyText = buildIssueMessage(order, issueLabel, explanation);
       window.location.href = `mailto:${COMPANY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
     });
@@ -474,7 +503,7 @@ async function initOrderHistoryPage() {
     btn.addEventListener('click', () => {
       const card = btn.closest('[data-order-id]');
       const { order, issueLabel, explanation } = collectIssueDetails(card);
-      const text = `Order issue — ${order.id.slice(0, 8)} (${issueLabel})\n\n${buildIssueMessage(order, issueLabel, explanation)}`;
+      const text = `Order issue - ${order.id.slice(0, 8)} (${issueLabel})\n\n${buildIssueMessage(order, issueLabel, explanation)}`;
       window.open(`https://wa.me/${COMPANY_WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank');
     });
   });

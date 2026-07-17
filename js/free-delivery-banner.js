@@ -1,6 +1,6 @@
 // Fills in [data-free-delivery-threshold] with the current global free
 // delivery threshold, wherever the free-delivery banner appears on a page.
-// Per-location thresholds can differ (see delivery-info.html) — this banner
+// Per-location thresholds can differ (see delivery-info.html) - this banner
 // only advertises the general/global figure and points to that page for
 // specifics.
 (function () {
@@ -13,7 +13,7 @@
     if (!els.length) return;
 
     if (!window.supabaseClient) {
-      console.error('Supabase client not found — check that supabase-config.js is loaded before free-delivery-banner.js.');
+      console.error('Supabase client not found - check that supabase-config.js is loaded before free-delivery-banner.js.');
       return;
     }
 

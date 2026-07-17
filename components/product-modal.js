@@ -31,7 +31,7 @@
             <div style="margin-top:20px;">
               <label style="font-family:var(--font-mono); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em;">Quantity</label>
               <div class="product-qty-row">
-                <button type="button" data-product-qty-minus aria-label="Decrease quantity">−</button>
+                <button type="button" data-product-qty-minus aria-label="Decrease quantity">-</button>
                 <span data-product-qty>1</span>
                 <button type="button" data-product-qty-plus aria-label="Increase quantity">+</button>
               </div>
@@ -98,7 +98,7 @@
 
     function updatePriceDisplay() {
       if (!selectedVariant) {
-        price.textContent = '—';
+        price.textContent = '-';
         originalPrice.textContent = '';
         return;
       }
@@ -110,7 +110,7 @@
       qtyEl.textContent = String(quantity);
 
       if (totalStock === 0) {
-        // Every size is sold out — no point asking the user to pick one.
+        // Every size is sold out - no point asking the user to pick one.
         addBtn.disabled = true;
         addBtn.textContent = 'Sold out';
         qtyMinus.disabled = true;
@@ -119,7 +119,7 @@
       }
 
       if (!selectedVariant) {
-        // Stock exists somewhere, just nothing picked yet — not the same as sold out.
+        // Stock exists somewhere, just nothing picked yet - not the same as sold out.
         addBtn.disabled = true;
         addBtn.textContent = 'Select a size';
         qtyMinus.disabled = true;
@@ -207,9 +207,9 @@
           btn.addEventListener('click', () => selectVariant(variant, btn));
           sizesRow.appendChild(btn);
         });
-        updatePriceDisplay(); // shows '—' until a size is picked
+        updatePriceDisplay(); // shows '-' until a size is picked
       } else {
-        // Single, sizeless variant (e.g. a mug) — auto-select it, no picker shown.
+        // Single, sizeless variant (e.g. a mug) - auto-select it, no picker shown.
         sizesWrap.style.display = 'none';
         selectVariant(variants[0] || null, null);
       }

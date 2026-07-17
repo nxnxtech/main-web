@@ -35,7 +35,7 @@
     const pageName = document.body.dataset.pageName;
     if (pageName) return pageName;
     const title = document.title || '';
-    return title.replace(/\s+—\s+NxNx Tech$/, '').trim() || 'Home';
+    return title.replace(/\s+-\s+NxNx Tech$/, '').trim() || 'Home';
   }
 
   function injectPageName() {

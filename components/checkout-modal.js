@@ -92,6 +92,33 @@
     return list.find((z) => z.town === town) || null;
   }
 
+  // ---------- VERIFY PAYMENT (with retry) ----------
+  // The verify-payment edge function verifies the transaction with Paystack
+  // and writes the order row, then returns it. That can take a moment, and
+  // Paystack can also call our webhook at nearly the same time, so we retry
+  // a few times instead of giving up on the first empty response, which is
+  // what caused the receipt to not show up before.
+  async function fetchOrderWithRetry(reference, attempts = 5, delayMs = 1500) {
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const { data, error } = await window.supabaseClient.functions.invoke(
+          'verify-payment',
+          { body: { reference } }
+        );
+
+        if (!error && data?.order) return data.order;
+        if (error) console.error('verify-payment attempt failed:', error);
+      } catch (e) {
+        console.error('verify-payment attempt threw:', e);
+      }
+
+      if (i < attempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+    return null;
+  }
+
   // A zone can override any/all of the global thresholds (e.g. a far,
   // expensive zone shouldn't need the same GHs 500 cart as a cheap one to
   // get free/half-off delivery). Anything the zone doesn't set falls back
@@ -231,7 +258,7 @@
                 ${item.size ? `Size ${escapeHTML(item.size)} · ` : ''}${formatGHS(item.price * (item.discount_percent ? 1 - item.discount_percent / 100 : 1))}
               </div>
               <div class="bag-row-qty">
-                <button type="button" data-bag-minus="${i}" aria-label="Decrease quantity" ${item.quantity <= 1 ? 'disabled' : ''}>−</button>
+                <button type="button" data-bag-minus="${i}" aria-label="Decrease quantity" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
                 <span>${item.quantity}</span>
                 <button type="button" data-bag-plus="${i}" aria-label="Increase quantity" ${item.quantity >= (item.stock ?? 99) ? 'disabled' : ''}>+</button>
               </div>
@@ -288,6 +315,61 @@
     function renderAuth() {
       isGuest = false; // arriving here (fresh, or "back") always means "not guest" until they say otherwise
 
+      // ---------- FORGOT PASSWORD (its own small view, not a tab) ----------
+      if (authMode === 'forgot') {
+        stepsEl.innerHTML = `
+          <span class="route-tag blue">Reset your password</span>
+          <h3 style="margin-top:16px;">Let's get you back in.</h3>
+          <p style="margin-top:6px; color:var(--ink-soft); font-size:0.9rem;">Enter the email for your account and we will send you a link to reset your password.</p>
+          <form data-forgot-form style="margin-top:20px; display:grid; gap:14px;">
+            <div>
+              <label class="checkout-label">Email</label>
+              <input type="email" placeholder="e.g., nxnxtech@anything.com" name="email" required class="checkout-input">
+            </div>
+            <p data-forgot-status style="font-size:0.85rem; display:none;"></p>
+            <button type="submit" class="btn btn-dark" style="justify-self:start;">Send reset link</button>
+          </form>
+          <button type="button" class="checkout-guest-link" data-back-to-signin style="margin-top:16px; background:none; border:none; padding:0; text-decoration:underline; cursor:pointer; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">← Back to sign in</button>
+        `;
+
+        stepsEl.querySelector('[data-back-to-signin]')?.addEventListener('click', () => {
+          authMode = 'signin';
+          renderAuth();
+        });
+
+        stepsEl.querySelector('[data-forgot-form]')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const status = form.querySelector('[data-forgot-status]');
+          const btn = form.querySelector('button[type="submit"]');
+          const email = form.email.value.trim();
+
+          function setStatus(msg, isError) {
+            status.textContent = msg;
+            status.style.display = 'block';
+            status.style.color = isError ? '#B3261E' : 'var(--palm)';
+          }
+
+          btn.disabled = true;
+          const originalText = btn.textContent;
+          btn.textContent = 'Sending…';
+
+          const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: `https://nxnx.tech/redirects/reset-password.html`,
+          });
+
+          btn.disabled = false;
+          btn.textContent = originalText;
+
+          // Same message either way, so we don't reveal whether an email is
+          // registered.
+          if (error) console.error('resetPasswordForEmail error:', error);
+          setStatus('If an account exists for that email, a reset link is on its way. Check your inbox.', false);
+        });
+
+        return;
+      }
+
       stepsEl.innerHTML = `
         <span class="route-tag blue">Sign in to check out</span>
         <h3 style="margin-top:16px;">${authMode === 'signin' ? 'Welcome back.' : 'Create an account.'}</h3>
@@ -308,16 +390,31 @@
           ` : ''}
           <div>
             <label class="checkout-label">Password</label>
-            <input type="password" name="password" required minlength="8" class="checkout-input">
+            <div style="position:relative;">
+              <input type="password" name="password" required minlength="8" class="checkout-input" style="padding-right:44px;">
+              <button type="button" data-password-toggle="password" aria-label="Show password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; color:var(--ink-soft); padding:0; display:flex; align-items:center; justify-content:center;">
+                <svg data-password-show-icon viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg data-password-hide-icon viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18"></path><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"></path><path d="M9.3 5.1A10.9 10.9 0 0 1 12 5c6.2 0 10 7 10 7a17.8 17.8 0 0 1-3.8 4.6"></path><path d="M6.2 6.2A17.9 17.9 0 0 0 2 12s3.5 7 10 7c1.4 0 2.7-.2 3.9-.6"></path></svg>
+              </button>
+            </div>
+            ${authMode === 'signin' ? `
+              <button type="button" data-forgot-password style="margin-top:8px; background:none; border:none; padding:0; text-decoration:underline; cursor:pointer; font-family:var(--font-mono); font-size:0.8rem; color:var(--ink-soft);">Forgot password?</button>
+            ` : ''}
           </div>
           ${authMode === 'signup' ? `
             <div>
               <label class="checkout-label">Confirm password</label>
-              <input type="password" name="confirm_password" required minlength="8" class="checkout-input">
+              <div style="position:relative;">
+                <input type="password" name="confirm_password" required minlength="8" class="checkout-input" style="padding-right:44px;">
+                <button type="button" data-password-toggle="confirm_password" aria-label="Show password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; color:var(--ink-soft); padding:0; display:flex; align-items:center; justify-content:center;">
+                  <svg data-password-show-icon viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  <svg data-password-hide-icon viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18"></path><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"></path><path d="M9.3 5.1A10.9 10.9 0 0 1 12 5c6.2 0 10 7 10 7a17.8 17.8 0 0 1-3.8 4.6"></path><path d="M6.2 6.2A17.9 17.9 0 0 0 2 12s3.5 7 10 7c1.4 0 2.7-.2 3.9-.6"></path></svg>
+                </button>
+              </div>
             </div>
           ` : ''}
           <p data-auth-hint style="font-size:0.8rem; color:var(--ink-soft); margin-top:-4px;">
-            ${authMode === 'signup' ? 'Use at least 8 characters with upper and lower case letters, a number, and a symbol.' : 'Use your email and password to continue.'}
+            ${authMode === 'signup' ? 'Use at least 8 characters with upper and lower case letters, a number, and a symbol.' : ''}
           </p>
           <p data-auth-status style="font-size:0.85rem; display:none;"></p>
           <button type="submit" class="btn btn-dark" style="justify-self:start;">${authMode === 'signin' ? 'Sign in' : 'Sign up'}</button>
@@ -328,6 +425,26 @@
 
       stepsEl.querySelectorAll('[data-auth-tab]').forEach((tab) => {
         tab.addEventListener('click', () => { authMode = tab.dataset.authTab; renderAuth(); });
+      });
+      stepsEl.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
+        const targetName = toggle.dataset.passwordToggle;
+        const input = stepsEl.querySelector(`[name="${targetName}"]`);
+        if (!input) return;
+        const showIcon = toggle.querySelector('[data-password-show-icon]');
+        const hideIcon = toggle.querySelector('[data-password-hide-icon]');
+        toggle.addEventListener('click', () => {
+          const isPassword = input.type === 'password';
+          input.type = isPassword ? 'text' : 'password';
+          toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+          if (showIcon && hideIcon) {
+            showIcon.style.display = isPassword ? 'none' : 'block';
+            hideIcon.style.display = isPassword ? 'block' : 'none';
+          }
+        });
+      });
+      stepsEl.querySelector('[data-forgot-password]')?.addEventListener('click', () => {
+        authMode = 'forgot';
+        renderAuth();
       });
       stepsEl.querySelector('[data-continue-guest]')?.addEventListener('click', () => renderStep('guest-warning'));
       stepsEl.querySelector('[data-back-to-bag]')?.addEventListener('click', () => renderStep('bag'));
@@ -414,12 +531,12 @@
         <h3 style="margin-top:16px;">Before you skip creating an account…</h3>
         <p style="margin-top:8px; color:var(--ink-soft); font-size:0.95rem;">Here's what an account gets you that a one-off guest order won't:</p>
         <ul style="margin-top:16px; padding-left:0; list-style:none; display:grid; gap:12px; font-size:0.92rem;">
-          <li style="display:flex; gap:10px;"><span>🏷️</span><span><strong>Member-only discounts</strong> — some codes and early sale access are only ever sent to account holders.</span></li>
-          <li style="display:flex; gap:10px;"><span>📦</span><span><strong>Order history &amp; resume payment</strong> — come back and finish a payment, or look up a past order, any time.</span></li>
-          <li style="display:flex; gap:10px;"><span>⚡</span><span><strong>Faster checkout next time</strong> — your delivery details are saved, so you won't retype them.</span></li>
-          <li style="display:flex; gap:10px;"><span>🛟</span><span><strong>Easier support</strong> — we can pull up your order instantly if something needs fixing.</span></li>
+          <li style="display:flex; gap:10px;"><span>🏷️</span><span><strong>Member-only discounts</strong>: some codes and early sale access are only ever sent to account holders.</span></li>
+          <li style="display:flex; gap:10px;"><span>📦</span><span><strong>Order history &amp; resume payment</strong>: come back and finish a payment, or look up a past order, any time.</span></li>
+          <li style="display:flex; gap:10px;"><span>⚡</span><span><strong>Faster checkout next time</strong>: your delivery details are saved, so you won't retype them.</span></li>
+          <li style="display:flex; gap:10px;"><span>🛟</span><span><strong>Easier support</strong>: we can pull up your order instantly if something needs fixing.</span></li>
         </ul>
-        <p style="margin-top:16px; color:var(--ink-soft); font-size:0.9rem;">As a guest, your receipt is the only record of this order — make sure to download or screenshot it.</p>
+        <p style="margin-top:16px; color:var(--ink-soft); font-size:0.9rem;">As a guest, your receipt is the only record of this order: make sure to download or screenshot it.</p>
         <div style="margin-top:22px; display:flex; gap:12px; flex-wrap:wrap;">
           <button type="button" class="btn btn-dark" data-guest-create-account>Create a free account</button>
           <button type="button" class=".btn btn-sm btn-outline" data-guest-continue>Continue as guest</button>
@@ -437,12 +554,12 @@
 
     // ---------- STEP: GUEST CONTACT ----------
     // Guests have no auth email on file, so we collect one here purely to
-    // send/confirm the order — it's carried through in `details.email`.
+    // send/confirm the order, it's carried through in `details.email`.
     function renderGuestContact() {
       stepsEl.innerHTML = `
         <span class="route-tag blue">Continue as guest</span>
         <h3 style="margin-top:16px;">Where should we send your receipt?</h3>
-        <p style="margin-top:8px; color:var(--ink-soft); font-size:0.95rem;">We'll only use this to confirm your order — no account, no saved history.</p>
+        <p style="margin-top:8px; color:var(--ink-soft); font-size:0.95rem;">We'll only use this to confirm your order, no account, no saved history.</p>
         <form data-guest-contact-form style="margin-top:20px; display:grid; gap:14px;">
           <div>
             <label class="checkout-label">Email *</label>
@@ -501,12 +618,12 @@
         const list = zones.byRegion[region] || [];
         if (!list.length) return `<option value="">${region ? 'No delivery areas set up in this region' : 'Select a region first…'}</option>`;
         return [`<option value="">Select…</option>`]
-          .concat(list.map((z) => `<option value="${escapeHTML(z.town)}" ${z.town === selectedTown ? 'selected' : ''}>${escapeHTML(z.town)} — ${formatGHS(Number(z.fee))}</option>`))
+          .concat(list.map((z) => `<option value="${escapeHTML(z.town)}" ${z.town === selectedTown ? 'selected' : ''}>${escapeHTML(z.town)} - ${formatGHS(Number(z.fee))}</option>`))
           .join('');
       }
 
       stepsEl.innerHTML = `
-        <span class="route-tag blue">${isGuest ? 'Guest checkout — delivery details' : 'Delivery details'}</span>
+        <span class="route-tag blue">${isGuest ? 'Guest checkout - delivery details' : 'Delivery details'}</span>
         <h3 style="margin-top:16px;" data-delivery-heading>Where should this go?</h3>
 
         <div class="auth-tabs" style="margin-top:16px;">
@@ -561,7 +678,7 @@
               </div>
             </div>
             <p data-zone-status style="font-size:0.82rem; color:var(--ink-soft); display:${zones.regions.length ? 'none' : 'block'};">
-              We couldn't load delivery areas — please refresh, or use Collect in person below.
+              We couldn't load delivery areas, please refresh, or use Collect in person below.
             </p>
             <div>
               <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -573,7 +690,7 @@
           </div>
 
           <p data-collect-note style="font-size:0.85rem; color:var(--ink-soft); display:${fulfillmentType === 'collect' ? 'block' : 'none'};">
-            No delivery fee — pick this up from us once your order is confirmed. We'll reach you on the phone number above.
+            No delivery fee, pick this up from us once your order is confirmed. We'll reach you on the phone number above.
           </p>
 
           <button type="submit" class="btn btn-dark" style="justify-self:start;">Continue to payment →</button>
@@ -788,7 +905,7 @@
       }
 
       stepsEl.innerHTML = `
-        <span class="route-tag blue">${isGuest ? 'Review & pay — guest checkout' : 'Review & pay'}</span>
+        <span class="route-tag blue">${isGuest ? 'Review & pay: guest checkout' : 'Review & pay'}</span>
         <h3 style="margin-top:16px;">Ready when you are.</h3>
         <div class="bag-rows">${rows}</div>
         <div style="margin-top:16px; padding-top:16px; border-top:2px solid var(--ink); font-family:var(--font-mono); font-size:0.9rem; color:var(--ink-soft);">
@@ -818,7 +935,7 @@
         <div data-summary style="margin-top:16px;">${summaryHTML()}</div>
 
         ${zoneMissing ? `
-          <p style="font-size:0.85rem; margin-top:10px; color:#B3261E;">This delivery area isn't available anymore — please go back and pick another, or collect in person.</p>
+          <p style="font-size:0.85rem; margin-top:10px; color:#B3261E;">This delivery area isn't available anymore, please go back and pick another, or collect in person.</p>
         ` : ''}
 
         <p data-review-status style="font-size:0.85rem; display:none; margin-top:10px;"></p>
@@ -868,7 +985,7 @@
         }
 
         if (typeof PaystackPop === 'undefined') {
-          setStatus('Payment isn\'t available right now — please refresh and try again.', true);
+          setStatus('Payment isn\'t available right now, please refresh and try again.', true);
           return;
         }
 
@@ -907,20 +1024,25 @@
         const popup = new PaystackPop();
         popup.resumeTransaction(data.access_code, {
           onSuccess: async (transaction) => {
-            const { data: verifyData, error: verifyError } = await window.supabaseClient.functions.invoke(
-              'verify-payment',
-              { body: { reference: transaction.reference || data.reference } }
-            );
+            const reference = transaction.reference || data.reference;
+
+            btn.textContent = 'Waiting for receipt…';
+            setStatus('Payment received, confirming your order and building your receipt…', false);
+
+            const order = await fetchOrderWithRetry(reference);
 
             btn.disabled = false;
             btn.textContent = 'Make payment';
 
-            if (verifyError || !verifyData?.order) {
-              setStatus('Payment received — confirming your order, please wait a moment then check your account.', false);
+            if (!order) {
+              setStatus(
+                `Payment received, but the receipt is taking longer than usual to load. Your reference is ${reference}. Check your order history in a moment, or contact support with this reference if it does not appear.`,
+                true
+              );
               return;
             }
 
-            lastOrder = verifyData.order;
+            lastOrder = order;
             clearCart();
             deleteCookie('nxnx_checkout_details');
             renderStep('receipt');
@@ -1290,7 +1412,7 @@
       // Best-effort live re-pricing of line items. Only attempted when every
       // item on the order carries a variant_id we can look up. NOTE: adjust
       // the table/column names here (currently 'merch_product_variants' /
-      // 'price') to match whatever your products schema actually uses — this
+      // 'price') to match whatever your products schema actually uses, and this
       // wasn't visible in the files provided, so it fails safe (falls back to
       // the order's stored subtotal) rather than guess wrong.
       let subtotal = Number(order.subtotal) || 0;
@@ -1333,7 +1455,7 @@
         </div>
         ${order.discount_code ? `
           <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-family:var(--font-mono); margin-top:6px; color:${pricing.discountStillActive === false ? '#B3261E' : 'var(--palm)'};">
-            <span>Discount (${escapeHTML(order.discount_code)})${pricing.discountStillActive === false ? ' — no longer active' : ''}</span>
+            <span>Discount (${escapeHTML(order.discount_code)})${pricing.discountStillActive === false ? ' - no longer active' : ''}</span>
             <span>${pricing.discountAmount > 0 ? '-' + formatGHS(pricing.discountAmount) : formatGHS(0)}</span>
           </div>
         ` : ''}
@@ -1354,7 +1476,7 @@
     }
 
     // order: the merch_orders row. options.onConfirm(({ setStatus, button }))
-    // is called when the shopper clicks "Continue to payment" — it should
+    // is called when the shopper clicks "Continue to payment" - it should
     // carry out the actual payment (Paystack, verify-payment, etc.) and call
     // showReceiptFromOrder() on success.
     async function renderResumeConfirm(order, { onConfirm } = {}) {
@@ -1403,7 +1525,7 @@
     }
 
     // Jumps the (shared, site-wide) checkout modal straight to the receipt
-    // step for an arbitrary order — used after a resumed payment succeeds,
+    // step for an arbitrary order, used after a resumed payment succeeds,
     // so the same download/screenshot UI works from order-history.html too.
     function showReceiptFromOrder(order) {
       modal.classList.add('is-open');

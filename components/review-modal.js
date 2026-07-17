@@ -39,7 +39,7 @@
   function initReviewModal() {
     const modal = document.querySelector('[data-review-modal]');
     const openBtn = document.querySelector('[data-review-open]');
-    if (!modal || !openBtn) return; // page has no trigger and/or no injected modal — nothing to wire up
+    if (!modal || !openBtn) return; // page has no trigger and/or no injected modal - nothing to wire up
 
     const closeBtn = modal.querySelector('[data-review-close]');
     const backdrop = modal.querySelector('[data-review-backdrop]');
@@ -95,7 +95,7 @@
       }
 
       if (!window.supabaseClient) {
-        setStatus('Reviews are temporarily unavailable — please try again later.', true);
+        setStatus('Reviews are temporarily unavailable - please try again later.', true);
         return;
       }
 
@@ -116,7 +116,7 @@
 
       if (error) {
         console.error('Error submitting review:', error);
-        setStatus('Something went wrong on our end — please try again in a moment.', true);
+        setStatus('Something went wrong on our end - please try again in a moment.', true);
         return;
       }
 

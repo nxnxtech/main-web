@@ -10,7 +10,7 @@ function formatGHS(amount) {
 
 function deliveryZoneRowHTML(zone, settings) {
   // A zone's own thresholds win if set; otherwise it uses the site-wide
-  // ones from delivery_settings — same fallback rule create-checkout and
+  // ones from delivery_settings - same fallback rule create-checkout and
   // the checkout modal use, so this page never disagrees with what
   // shoppers actually get charged.
   const freeAt = zone.free_threshold ?? settings?.free_threshold ?? null;
@@ -65,7 +65,7 @@ function initDeliveryInfoPage() {
   if (!container) return;
 
   if (!window.supabaseClient) {
-    console.error('Supabase client not found — check that supabase-config.js is loaded before delivery-info.js.');
+    console.error('Supabase client not found - check that supabase-config.js is loaded before delivery-info.js.');
     return;
   }
 
@@ -85,7 +85,7 @@ function initDeliveryInfoPage() {
 
     if (!query) {
       if (searchStatus) searchStatus.style.display = 'none';
-      renderDeliveryZones(allZones, settings, "Delivery areas aren't set up yet — please check back soon, or collect in person.");
+      renderDeliveryZones(allZones, settings, "Delivery areas aren't set up yet - please check back soon, or collect in person.");
       return;
     }
 
@@ -107,7 +107,7 @@ function initDeliveryInfoPage() {
     e.preventDefault();
     applySearch();
   });
-  // Live filtering as they type feels better than requiring the button —
+  // Live filtering as they type feels better than requiring the button -
   // the button/submit is still there for anyone who prefers it (or hits Enter).
   searchInput?.addEventListener('input', applySearch);
 
@@ -126,12 +126,12 @@ function initDeliveryInfoPage() {
   ]).then(([zonesRes, settingsRes]) => {
     if (zonesRes.error) {
       console.error('Error loading delivery zones:', zonesRes.error);
-      container.innerHTML = `<p style="color:var(--ink-soft);">Couldn't load delivery info right now — please try again shortly.</p>`;
+      container.innerHTML = `<p style="color:var(--ink-soft);">Couldn't load delivery info right now - please try again shortly.</p>`;
       return;
     }
     allZones = zonesRes.data || [];
     settings = settingsRes.data || null;
-    renderDeliveryZones(allZones, settings, "Delivery areas aren't set up yet — please check back soon, or collect in person.");
+    renderDeliveryZones(allZones, settings, "Delivery areas aren't set up yet - please check back soon, or collect in person.");
   });
 }
 

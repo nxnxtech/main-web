@@ -1,4 +1,4 @@
-// TrotroTech Solutions — shared behaviour
+// TrotroTech Solutions - shared behaviour
 
 function initSiteBehaviors() {
   if (document.documentElement.dataset.siteBehaviorsInitialized === 'true') return;
@@ -58,7 +58,7 @@ function initSiteBehaviors() {
       slide.className = `testimonial-slide ${index === 0 ? 'is-active' : ''}`;
       slide.innerHTML = `
         <p style="font-family:var(--font-display); font-size:1.7rem; line-height:1.25;">"${escapeHTML(comment.comment)}"</p>
-        <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">— ${escapeHTML(comment.name)}${comment.company ? `, ${escapeHTML(comment.company)}` : ''}</p>
+        <p style="margin-top:18px; font-family:var(--font-mono); font-size:0.85rem; color:var(--ink-soft);">- ${escapeHTML(comment.name)}${comment.company ? `, ${escapeHTML(comment.company)}` : ''}</p>
       `;
       testimonialsContainer.appendChild(slide);
     });
@@ -108,7 +108,7 @@ function initSiteBehaviors() {
 
   if (testimonialsContainer && dotsContainer) {
     if (!window.supabaseClient) {
-      console.error('Supabase client not found — check that supabase-config.js is loaded before main.js.');
+      console.error('Supabase client not found - check that supabase-config.js is loaded before main.js.');
     } else {
       if (window.NxNxComponents?.loadingState) {
         testimonialsContainer.innerHTML = window.NxNxComponents.loadingState('Loading reviews…');
@@ -133,7 +133,7 @@ function initSiteBehaviors() {
   const projectsGrid = document.getElementById('projects-grid');
   if (projectsGrid) {
     if (!window.supabaseClient) {
-      console.error('Supabase client not found — check that supabase-config.js is loaded before main.js.');
+      console.error('Supabase client not found - check that supabase-config.js is loaded before main.js.');
     } else {
       if (window.NxNxComponents?.loadingState) {
         projectsGrid.innerHTML = window.NxNxComponents.loadingState('Loading projects…', { fullWidth: true });
@@ -241,7 +241,7 @@ function initSiteBehaviors() {
         return;
       }
 
-      const subject = `New project inquiry from ${name}${projectType ? ' — ' + projectType : ''}`;
+      const subject = `New project inquiry from ${name}${projectType ? ' - ' + projectType : ''}`;
       const bodyLines = [
         `Name: ${name}`,
         `Email: ${email}`,
@@ -261,7 +261,7 @@ function initSiteBehaviors() {
 
       setTimeout(() => {
         if (status) {
-          status.textContent = `Your email app should now be open with this message addressed to ${to} — just hit send.`;
+          status.textContent = `Your email app should now be open with this message addressed to ${to} - just hit send.`;
           status.classList.add('is-visible');
         }
         btn.disabled = false;

@@ -6,7 +6,7 @@ window.NxNxComponents.footer = `
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="../pages/index.html" class="brand"><img src="../images/logo.png" alt="NxNx Tech" class="logo-mark"></a>
-        <p>Custom software, mobile apps and web apps — designed and built in Ghana.</p>
+        <p>Custom software, mobile apps and web apps - designed and built in Ghana.</p>
       </div>
       <div>
         <h4>Site</h4>
